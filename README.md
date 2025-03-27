@@ -32,7 +32,7 @@ The task can be run in three different configurations, as described above. The t
 | Two-step task                      | `MFMB`              |
 | Model-free learning task           | `MF`                |
 
-If the `TASK` URL variable is not set, the task will default to the transition learning task.
+If the `TASK` URL variable is not set, the task will default to the model free task.
 
 The different configurations change the task format as follows:
 
@@ -42,7 +42,7 @@ The different configurations change the task format as follows:
 | Two-step task | Not shown | Pink/Purple | Shown | ❌ |
 | Model-free learning task | Not shown | Grey| N/A | ❌ |
 
-> ⚠ NOTE: The model-free learning task is not yet implemented.
+
 
 ### Modifying task outcomes
 
@@ -63,11 +63,11 @@ Some useful task settings can be specified through URL parameters. These are lis
 | Parameter | Description | Default value |
 |-----------|-------------|---------------|
 | `PROLIFIC_PID` | Prolific ID (or any subject ID) | Generates a random integer |
-| `TASK` | Task configuration | `MB` |
+| `TASK` | Task configuration | `MF` |
 | `SHORT` | Short version of the task (5 trials) | `false` |
 | `TEST` | Test version of the task - skips instructions | `false` |
 | `STUDY` | Study identifier - can be useful for saving data to databases | `NONE` |
-
+| `SESSION` | Session number - if doing multiple sessions with the same participants | 1 |
 ### Data saving
 
 #### Google Firebase
