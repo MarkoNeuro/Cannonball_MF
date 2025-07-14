@@ -12,7 +12,7 @@ import gameConfig from './gameConfig.js';
  */
 var startGame = function (uid) {
     // Get URL variables
-    let { subjectID, testing, studyID, short, task } = extractUrlVariables();
+    let { subjectID, testing, studyID, session, short, task } = extractUrlVariables();
 
     // Clear start element and scroll to top
     document.getElementById("start").innerHTML = "";
@@ -26,6 +26,7 @@ var startGame = function (uid) {
 
         // Subject and study IDs stored in registry
         game.registry.set("subjectID", subjectID);
+        game.registry.set("SESSION", session);
         game.registry.set("studyID", studyID.toLowerCase());
 
         // Apply configuration settings to the game (given in config.js)
@@ -42,6 +43,9 @@ var startGame = function (uid) {
 
         // Store task type in registry
         game.registry.set("task", task);
+
+        // Parse session number from URL or default to 1 and store in game config
+        game.config.currentSessionNumber = parseInt(session, 10) || 1;
 
         // Store the database and uid in the game config
         game.config.db = db;
