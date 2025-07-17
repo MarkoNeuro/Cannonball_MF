@@ -26,10 +26,14 @@ class Ball extends Phaser.Physics.Arcade.Sprite {
             `${imagePath}_grey_explode.png`,
             greySpriteSheetConfig
         );
+
+        // ✅ NEW: Load the glowing tail particle
+        scene.load.image("tail_particle",`${imagePath}/tail.png`);
+
         Ball.assetsPreloaded = true;
     }
 
-    constructor(scene, x, y, colour, rotationSpeed) {
+    constructor(scene, x, y, colour, rotationSpeed, tailEmitter) {
         if (!Ball.assetsPreloaded) {
             throw new Error("Assets for Ball have not been preloaded.");
         }
@@ -53,7 +57,14 @@ class Ball extends Phaser.Physics.Arcade.Sprite {
         this.visible = false;
 
         this.setDepth(5);
+        // 🔥 Use the shared emitter
+        this.tailEmitter = tailEmitter;
+        this.tailEmitter.setDepth(3);
+        this.trailOffset = { x: 0, y: 0 };   
+        
+        
     }
+
 
     setInitialProperties(scene) {
         this.setScale(0.4);
@@ -62,7 +73,11 @@ class Ball extends Phaser.Physics.Arcade.Sprite {
         this.setData("colour", this.currentColour);
     }
 
+   
+    
+
     resetPosition() {
+        this.stopTrail();
         this.x = 20;
         this.y = 20;
         this.setVelocity(0);
@@ -86,7 +101,7 @@ class Ball extends Phaser.Physics.Arcade.Sprite {
                         `ball_${colour}_explode`,
                         {
                             start: 0,
-                            end: 6,
+                            end: 5,
                         }
                     ),
                     frameRate: 50,
@@ -129,6 +144,10 @@ class Ball extends Phaser.Physics.Arcade.Sprite {
         this.scene.time.delayedCall(
             150,
             () => {
+                if (this.scene) {
+                    this.scene.outcomeTime = this.scene.game.loop.time;
+                    console.log(`[OUTCOME] Outcome interval (ms):`, Math.round(this.scene.outcomeTime - this.scene.choiceTime));
+                }
                 let explosionGroup = this[this.currentColour + "Explosions"];
                 let explosion = explosionGroup.get(this.x, this.y);
                 if (explosion) {
@@ -148,6 +167,24 @@ class Ball extends Phaser.Physics.Arcade.Sprite {
             [],
             this
         );
+    }
+
+    startTrail() {
+        if (this.tailEmitter) {
+            this.tailEmitter.startFollow(this,0,0);
+            this.tailEmitter.start();
+            if (this.scene) {
+                this.scene.outcomeTime = this.scene.game.loop.time;
+                console.log(`[OUTCOME] Outcome interval (ms):`, Math.round(this.scene.outcomeTime - this.scene.choiceTime));
+            }
+        }
+    }
+
+    stopTrail() {
+        if (this.tailEmitter) {
+            this.tailEmitter.stopFollow();
+            this.tailEmitter.stop();
+        }
     }
 
     fire(side, explode) {
@@ -200,6 +237,11 @@ class Ball extends Phaser.Physics.Arcade.Sprite {
                     this.explode();
                 } else {
                     this.scene.exploded = false;
+                    console.log("Starting tail emitter!");
+                    // Delay the trail start to match the explosion delay
+                    this.scene.time.delayedCall(150, () => {
+                        this.startTrail();
+                    });
                 }
             },
         });
@@ -209,6 +251,33 @@ class Ball extends Phaser.Physics.Arcade.Sprite {
         // Rotate the ball
         this.rotation += this.rotationSpeed;
 
+        // --- NEW: Update tail emitter angle based on velocity ---
+        if (
+            this.tailEmitter &&
+            typeof this.tailEmitter.angle === "object" &&
+            typeof this.tailEmitter.speed === "object"
+        ) {
+            const vx = this.body.velocity.x;
+            const vy = this.body.velocity.y;
+            const mag = Math.sqrt(vx * vx + vy * vy);
+
+            if (mag > 1) {
+                const angleDeg = Phaser.Math.RadToDeg(Math.atan2(vy, vx)) + 180;
+                const angleRad = Math.atan2(vy, vx);
+                this.tailEmitter.angle.min = angleDeg;
+                this.tailEmitter.angle.max = angleDeg;
+                this.tailEmitter.speed.min = 30;
+                this.tailEmitter.speed.max = 30;
+
+                // --- CODE FOR TRAIL OFFSET ---
+                const tailLength = (this.displayWidth / 2) * 0.5; // Tweak 0.85 if needed
+                const offsetX = Math.cos(angleRad) * tailLength;
+                const offsetY = Math.sin(angleRad) * tailLength;
+                this.tailEmitter.followOffset.x = offsetX;
+                this.tailEmitter.followOffset.y = offsetY;
+            }
+        }
+        
         // Check if the ball is off-screen
         if (
             this.y > 620 &&

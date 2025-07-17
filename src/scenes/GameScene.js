@@ -366,16 +366,16 @@ class GameScene extends Phaser.Scene {
      */
     createBalls() {
         // Create grey cannonball
-        this.ball_grey = new Ball(this, 300, 800, "grey", 0.05);
+        this.ball_grey = new Ball(this, 300, 800, "grey", 0.05, this.tailEmitter);
         if (this.ballsAreGrey == true) {
-            this.ball_pink = new Ball(this, 300, 800, "grey", 0.05)
-            this.ball_purple = new Ball(this, 300, 800, "grey", 0.05)
-             }
+            this.ball_pink = new Ball(this, 300, 800, "grey", 0.05, this.tailEmitter);
+            this.ball_purple = new Ball(this, 300, 800, "grey", 0.05, this.tailEmitter);
+        }
         else {
         // Create pink cannonball
-        this.ball_pink = new Ball(this, 300, 800, "pink", 0.05);
+        this.ball_pink = new Ball(this, 300, 800, "pink", 0.05, this.tailEmitter);
         // Create purple cannonball
-        this.ball_purple = new Ball(this, 300, 800, "purple", 0.05);
+        this.ball_purple = new Ball(this, 300, 800, "purple", 0.05, this.tailEmitter);
         }        
         // Listen for the 'exploded' event
         this.ball_pink.on("exploded", (ball) => {
@@ -493,6 +493,21 @@ class GameScene extends Phaser.Scene {
             545,
             this.showBallColourProbabilities
         );
+        
+        
+        this.tailEmitter = this.add.particles(0, 0, "tail_particle", {
+            angle: { min: 180, max: 180 },      // Will be dynamically set in update()
+            speed: { min: 30, max: 40 },        // Shorter trail, barely extends past ball
+            scale: { start: 0.09, end: 0.00 },  // Small particle, about 50% of the ball’s diameter
+            alpha: { start: 0.55, end: 0.01 },  // Gentle fade-out
+            lifespan: 120,                      // Short time = short trail
+            frequency: 10,                      // 1 particle every 20ms, keeps it smooth but not dense
+            quantity: 2,                        // Single particle, no stacking
+            blendMode: "ADD"                    // Soft glow, but not overwhelming
+        });
+
+        // Do not start following anything yet
+        this.tailEmitter.stop();
 
         // Balls
         this.createBalls();
@@ -585,6 +600,9 @@ class GameScene extends Phaser.Scene {
 
             // Calculate the response time in milliseconds
             this.RT = this.game.loop.time - this.startTime;
+
+            // Record button press time
+            this.choiceTime = this.game.loop.time; 
 
             // Set the cannon as inactive to prevent firing again
             this.cannonActive = false;
@@ -764,6 +782,8 @@ class GameScene extends Phaser.Scene {
             this.storeData();
         }
 
+        
+
         // Go to end scene if all trials completed
         let end = this.handleEndScene();
 
@@ -813,8 +833,40 @@ class GameScene extends Phaser.Scene {
 
             // Set cannon active
             this.cannonActive = true;
+
+            // Check if the halfway point is reached
+            if (this.trialNumber === Math.floor(this.totalTrials / 2)) {
+                console.log("Halfway point reached, preparing to trigger pause...");
+                this.triggerPause();
+                return; // Stop further trial setup during the pause
+            }
+
+            // Listen for the resumeGame event
+            this.events.on("resumeGame", () => {
+                console.log("Game resumed, reactivating cannons...");
+                this.cannonActive = true; // Reactivate cannons
+            });
         }
     }
+
+    triggerPause() {
+        // Disable input handling and cannon firing
+        this.input.enabled = false;
+        this.cannonActive = false;
+
+        // Launch the PauseScene after a delay
+        this.time.delayedCall(750, () => {
+            this.scene.launch("PauseScene");
+            this.scene.pause(); // Pause the game
+
+            // Re-enable input handling in the PauseScene
+            const pauseScene = this.scene.get("PauseScene");
+            pauseScene.events.once("pauseReady", () => {
+                this.input.enabled = true;
+                this.cannonActive = true; // Reactivate cannon firing
+            });
+        });
+    }    
 
     /**
      * Handles the blocking of the cannon containers based on the current trial information.

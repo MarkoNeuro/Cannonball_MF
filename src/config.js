@@ -9,10 +9,10 @@ function getRandomTrialInfoFile(array) {
     return randomFile;
 }
 const files = [
-    "trial_info_model-free_LW_SF.json",
-    "trial_info_model-free_LW_VF.json",
-    "trial_info_model-free_RW_SF.json",
-    "trial_info_model-free_RW_VF.json"
+    "trial_info_model-free_LW_SF_7525.json",
+    "trial_info_model-free_LW_VF_7525.json",
+    "trial_info_model-free_RW_SF_7525.json",
+    "trial_info_model-free_RW_VF_7525.json"
 ]; // Add the trial info files here
 const gameConfigSettings = {
 
