@@ -1,10 +1,11 @@
 const firebaseConfig = {
-  apiKey: "AIzaSyCwvUppqckqsXqKfs-Tj_jz8yRSx0nFq1c",
-  authDomain: "test-project-3b04c.firebaseapp.com",
-  projectId: "test-project-3b04c",
-  storageBucket: "test-project-3b04c.appspot.com",
-  messagingSenderId: "629661431349",
-  appId: "1:629661431349:web:43dcfdb459ab68c9efe37c",
+    apiKey: "AIzaSyD485m3Jk8e1NJbBmCXztiAApe0Vsu61ho",
+    authDomain: "cannonball-rl.firebaseapp.com",
+    projectId: "cannonball-rl",
+    storageBucket: "cannonball-rl.firebasestorage.app",
+    messagingSenderId: "13180569148",
+    appId: "1:13180569148:web:47cb9611649aac5317a539",
+    measurementId: "G-KRN8NPY42N"
 };
-  
+
 export default firebaseConfig;

@@ -1,6 +1,6 @@
 // Firebase
 import { signInAndGetUid, db } from "./firebaseSetup.js";
-import { initSubject } from "./data.js";
+import { initSubject } from "./data_RL.js";
 // Other things
 import { extractUrlVariables, applyGameConfig } from "./utils.js";
 import gameConfig from './gameConfig.js';
