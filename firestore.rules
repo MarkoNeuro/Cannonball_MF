@@ -1,8 +1,8 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Match any document in the 'Cannonball_MF_pilot/{studyID}/subjects/{uid}' collection
-    match /Cannonball_MF_pilot/{studyID}/subjects/{uid} {
+    // Match any document in the 'tests/{studyID}/subjects/{uid}' collection
+    match /tests/{studyID}/subjects/{uid} {
       // Allow read and write access to the document if the request is authenticated
       // and the uid in the document path matches the uid of the authenticated user
       allow read, write: if request.auth != null && request.auth.uid == uid;

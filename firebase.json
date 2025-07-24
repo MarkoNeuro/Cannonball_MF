@@ -11,7 +11,14 @@
     "ignore": [
       "firebase.json",
       "**/.*",
-      "**/node_modules/**"
+      "**/node_modules/**",
+      ".venv/**",
+      ".git/**",
+      "*.py",
+      "functions/**",
+      ".vscode/**",
+      "package*.json",
+      "*.md"
     ],
     "rewrites": [
       {

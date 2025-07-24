@@ -10,7 +10,7 @@ import {
     ScoreAnnouncementText,
 } from "../classes/ui.js";
 import Asteroids from "../classes/asteroids.js";
-import { saveData } from "../data.js";
+import { saveData } from "../data_RL.js";
 
 class GameScene extends Phaser.Scene {
     constructor(key) {

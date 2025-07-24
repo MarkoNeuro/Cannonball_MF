@@ -15,7 +15,7 @@ export function initSubject(game) {
     const docRef = doc(
         game.config.db,
         "tests",
-        game.config.studyID,
+        "20segments_440trials",
         "subjects",
         game.config.uid
     );
@@ -45,7 +45,7 @@ export function saveData(game) {
     const docRef = doc(
         game.config.db,
         "tests",
-        game.config.studyID,
+        "20segments_440trials",
         "subjects",
         game.config.uid
     );
