@@ -142,7 +142,7 @@ class Ball extends Phaser.Physics.Arcade.Sprite {
 
     explode() {
         this.scene.time.delayedCall(
-            150,
+            200,
             () => {
                 if (this.scene) {
                     this.scene.outcomeTime = this.scene.game.loop.time;
@@ -239,7 +239,7 @@ class Ball extends Phaser.Physics.Arcade.Sprite {
                     this.scene.exploded = false;
                     console.log("Starting tail emitter!");
                     // Delay the trail start to match the explosion delay
-                    this.scene.time.delayedCall(150, () => {
+                    this.scene.time.delayedCall(200, () => {
                         this.startTrail();
                     });
                 }
