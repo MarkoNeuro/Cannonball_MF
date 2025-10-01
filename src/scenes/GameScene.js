@@ -81,6 +81,7 @@ class GameScene extends Phaser.Scene {
         this.response = -999;
         this.ballColour = "";
         this.exploded = false;
+        this.trialOutcome = 1; // 1 = successful (no explosion), 0 = failed (exploded)
 
         // variable to track RTs
         this.startTime = this.game.loop.time;
@@ -564,6 +565,7 @@ class GameScene extends Phaser.Scene {
 
         // Set exploded state
         this.exploded = true;
+        this.trialOutcome = 0; // Ball exploded, so trial outcome is 0 (failed)
 
         // Update trial counter
         this.startNewTrial();
@@ -681,6 +683,8 @@ class GameScene extends Phaser.Scene {
             response: this.response,
             ballColour: this.ballColour,
             exploded: this.exploded,
+            trialOutcome: this.trialOutcome,
+            
             RT: this.RT,
             confidence: this.confidence,
             pinkBet: this.pinkBet,
@@ -795,6 +799,10 @@ class GameScene extends Phaser.Scene {
 
             // Reset bets
             this.pinkBet = this.purpleBet = -999;
+
+            // Reset trial outcome variables
+            this.exploded = false;
+            this.trialOutcome = 1; // Default to successful outcome (no explosion)
 
             // Save data every 5 trials
             if (

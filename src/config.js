@@ -14,6 +14,7 @@ const files = [
     "trial_info_model-free_RW_SF_7525.json",
     "trial_info_model-free_RW_VF_7525.json"
 ]; // Add the trial info files here
+
 const gameConfigSettings = {
 
     // UPDATE TASK SETTINGS HERE
@@ -59,7 +60,7 @@ const gameConfigSettings = {
         leftPinkChance: -1,
         rightPinkChance: -1,
         showBrokenInstructions: false,
-        trialInfoFile: "trialinfo_MF_reversal_20segments.json" //getRandomTrialInfoFile(files)
+        trialInfoFile: "trialinfo_MF_reversal_40segments_880trials.json" //getRandomTrialInfoFile(files) // Uncomment to select a random file from the list above
     }
     
 };
