@@ -151,6 +151,7 @@ class GameScene extends Phaser.Scene {
         // load trial info
         // this.load.json("trial_info", "./src/trial_info/trial_info_TU.json");
         // this.load.json("trial_info", "./src/trial_info/trial_info_two-step.json");
+        console.log(`Loading trial info file: ${this.trialInfoFile}`);
         this.load.json("trial_info", `./src/trial_info/${this.trialInfoFile}`);
 
         // Load planet image
@@ -328,12 +329,17 @@ class GameScene extends Phaser.Scene {
     loadTrialInfo() {
         // Load trial info from cache
         this.trialInfo = this.cache.json.get("trial_info");
+        
+        console.log(`✓ Trial info file successfully loaded: ${this.trialInfoFile}`);
+        console.log(`Total trials available: ${Object.keys(this.trialInfo).length}`);
 
         // Set totalTrials based on registry value
         if (this.registry.get("short")) {
             this.totalTrials = 5;
+            console.log(`Using short mode: ${this.totalTrials} trials`);
         } else {
             this.totalTrials = Object.keys(this.trialInfo).length;
+            console.log(`Using full mode: ${this.totalTrials} trials`);
         }
     }
 
@@ -842,8 +848,8 @@ class GameScene extends Phaser.Scene {
             // Set cannon active
             this.cannonActive = true;
 
-            // Check if the halfway point is reached
-            if (this.trialNumber === Math.floor(this.totalTrials / 2)) {
+            // Check if the halfway point is reached (skip in practice mode)
+            if (this.trialNumber === Math.floor(this.totalTrials / 2) && !this.registry.get("practice")) {
                 console.log("Halfway point reached, preparing to trigger pause...");
                 this.triggerPause();
                 return; // Stop further trial setup during the pause
@@ -934,24 +940,83 @@ class GameScene extends Phaser.Scene {
     }
 
     /**
-     * Saves the trial data to the Firestore database.
+     * Saves the trial data to the appropriate destination based on save method.
      */
     saveData() {
-        // Check the init_subject_failed flag in the registry
-        if (this.registry.get("init_subject_failed")) {
-            // Log a warning if the flag is set
-            console.warn(
-                "Failed to save data because subject initialization failed."
-            );
-            // Return early
+        // Skip saving in practice mode
+        if (this.registry.get("practice")) {
+            console.log("Practice mode: skipping data save");
             return;
         }
-        // Otherwise, save data
-        else {
-            // Use the saveData function from data.js
-            saveData(this.game);
+        
+        const saveMethod = this.registry.get("saveMethod");
+        
+        if (saveMethod === "firebase") {
+            // Check the init_subject_failed flag in the registry
+            if (this.registry.get("init_subject_failed")) {
+                // Log a warning if the flag is set
+                console.warn(
+                    "Failed to save data because subject initialization failed."
+                );
+                // Return early
+                return;
+            }
+            // Otherwise, save to Firebase
+            else {
+                // Use the saveData function from data_RL.js
+                saveData(this.game);
+            }
+        } else if (saveMethod === "http") {
+            // Save to HTTP server
+            this.saveToHttpServer();
+        } else {
+            console.warn("Unknown save method:", saveMethod);
         }
+    }
 
+    /**
+     * Saves data to HTTP server.
+     */
+    saveToHttpServer() {
+        // Get URL parameters for server configuration
+        const urlParams = new URLSearchParams(window.location.search);
+        const apiURL = urlParams.get('apiURL') || '127.0.0.1';
+        const apiPort = urlParams.get('apiPort') || '5000';
+        const apiEndpoint = urlParams.get('apiEndpoint') || '/submit_data';
+        
+        const serverURL = `http://${apiURL}:${apiPort}${apiEndpoint}`;
+        
+        const dataToSend = {
+            subjectID: this.registry.get("subjectID"),
+            sessionID: this.registry.get("SESSION"),
+            studyID: this.registry.get("studyID"),
+            task: this.registry.get("task"),
+            trial_data: this.registry.get("data"),
+            timestamp: new Date().toISOString(),
+            trial_info_file: this.registry.get("trialInfoFile")
+        };
+
+        fetch(serverURL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(dataToSend)
+        })
+        .then(response => {
+            if (response.ok) {
+                console.log("Data successfully sent to HTTP server!");
+                return response.json();
+            } else {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+        })
+        .then(data => {
+            console.log('Server response:', data);
+        })
+        .catch(error => {
+            console.error("Error sending data to HTTP server:", error);
+        });
     }
 
     1;

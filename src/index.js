@@ -1,6 +1,3 @@
-// Firebase
-import { signInAndGetUid, db } from "./firebaseSetup.js";
-import { initSubject } from "./data_RL.js";
 // Other things
 import { extractUrlVariables, applyGameConfig } from "./utils.js";
 import gameConfig from './gameConfig.js';
@@ -8,11 +5,12 @@ import gameConfig from './gameConfig.js';
 /**
  * Function to check the start of the game.
  *
- * @param {string} uid - The user ID.
+ * @param {string} uid - The user ID (only used for Firebase).
+ * @param {string} saveMethod - The save method chosen.
  */
-var startGame = function (uid) {
+var startGame = function (uid = null, saveMethod = "firebase") {
     // Get URL variables
-    let { subjectID, testing, studyID, session, short, task } = extractUrlVariables();
+    let { subjectID, testing, studyID, session, short, task, trialInfoFile, practice, debugPhysics } = extractUrlVariables();
 
     // Clear start element and scroll to top
     document.getElementById("start").innerHTML = "";
@@ -29,8 +27,28 @@ var startGame = function (uid) {
         game.registry.set("SESSION", session);
         game.registry.set("studyID", studyID.toLowerCase());
 
+        // Store save method in registry
+        game.registry.set("saveMethod", saveMethod);
+
+        // Store practice mode in registry
+        game.registry.set("practice", practice);
+        if (practice) {
+            console.log("Practice mode enabled - pauses and saving disabled");
+        }
+
+        // Store trial info file if provided via URL
+        if (trialInfoFile) {
+            game.registry.set("trialInfoFile", trialInfoFile);
+        }
+
         // Apply configuration settings to the game (given in config.js)
         applyGameConfig(game, task);
+
+        // Override debugPhysics setting from URL parameter if provided
+        if (debugPhysics) {
+            game.registry.set("debugPhysics", true);
+            console.log("Debug physics enabled from URL parameter");
+        }
 
         // Set testing flag
         game.config.testing = testing === "FALSE" ? false : true;
@@ -47,19 +65,28 @@ var startGame = function (uid) {
         // Parse session number from URL or default to 1 and store in game config
         game.config.currentSessionNumber = parseInt(session, 10) || 1;
 
-        // Store the database and uid in the game config
-        game.config.db = db;
-        game.config.uid = uid;
+        // Only set up Firebase if using Firebase save method
+        if (saveMethod === "firebase") {
+            // Firebase setup - import here only when needed
+            import("./firebaseSetup.js").then(({ db }) => {
+                import("./data_RL.js").then(({ initSubject }) => {
+                    // Store the database and uid in the game config
+                    game.config.db = db;
+                    game.config.uid = uid;
 
-        // Initialise the subject in the database
-        // Try to initialize the subject
-        try {
-            initSubject(game);
-        } catch (error) {
-            // Log a warning if initialization fails
-            console.warn("Failed to initialise subject:", error);
-            // Set a flag in the registry to indicate initialization failure
-            game.registry.set("init_subject_failed", true);
+                    // Initialise the subject in the database
+                    try {
+                        initSubject(game);
+                    } catch (error) {
+                        // Log a warning if initialization fails
+                        console.warn("Failed to initialise subject:", error);
+                        // Set a flag in the registry to indicate initialization failure
+                        game.registry.set("init_subject_failed", true);
+                    }
+                });
+            });
+        } else {
+            console.log("Using HTTP server save method - skipping Firebase initialization");
         }
     
         // Store the start time in the registry
@@ -71,12 +98,25 @@ var startGame = function (uid) {
     }, 1000);
 };
 
-// Sign in and start the game
-signInAndGetUid()
-    .then((uid) => {
-        console.log("Signed in with UID:", uid);
-        startGame(uid); // Pass uid as an argument to startGame
-    })
-    .catch((error) => {
-        console.error("Sign-in failed:", error);
+// Get URL variables to check save method
+let { saveMethod } = extractUrlVariables();
+
+// Only use Firebase if save method is "firebase"
+if (saveMethod === "firebase") {
+    // Import Firebase modules only when needed
+    import("./firebaseSetup.js").then(({ signInAndGetUid }) => {
+        // Sign in and start the game
+        signInAndGetUid()
+            .then((uid) => {
+                console.log("Signed in with UID:", uid);
+                startGame(uid, saveMethod);
+            })
+            .catch((error) => {
+                console.error("Sign-in failed:", error);
+            });
     });
+} else {
+    // Start game directly without Firebase
+    console.log("Starting game with HTTP server save method");
+    startGame(null, saveMethod);
+}

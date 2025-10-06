@@ -1,3 +1,7 @@
 # Ignore firebase configuration details
 src/firebaseConfig.js
 node_modules
+
+# Ignore example landing page
+landing example.html
+

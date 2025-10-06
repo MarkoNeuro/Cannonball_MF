@@ -6,7 +6,7 @@ import {
     onAuthStateChanged,
 } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-auth.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-firestore.js";
-import firebaseConfig from "./firebaseConfig.js";
+import firebaseConfig from "./firebaseConfigRetest.js";
 
 // Your web app's Firebase configuration object
 // const firebaseConfig = {
