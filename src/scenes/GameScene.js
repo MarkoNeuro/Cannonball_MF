@@ -1070,6 +1070,24 @@ class GameScene extends Phaser.Scene {
             write_mode: "append" // Optional
         };
         
+        // CRITICAL DEBUGGING - Check for missing required fields
+        console.log("🚨 CRITICAL VALIDATION:");
+        console.log("dataToSend object keys:", Object.keys(dataToSend));
+        console.log("Required field 'id':", dataToSend.hasOwnProperty('id'), "Value:", dataToSend.id);
+        console.log("Required field 'session':", dataToSend.hasOwnProperty('session'), "Value:", dataToSend.session);
+        console.log("Required field 'data':", dataToSend.hasOwnProperty('data'), "Value:", Array.isArray(dataToSend.data) ? `Array[${dataToSend.data.length}]` : dataToSend.data);
+        
+        // Check if any required fields are empty strings or falsy
+        if (!dataToSend.id || dataToSend.id === 'undefined' || dataToSend.id === 'null') {
+            console.error("❌ CRITICAL: 'id' field is missing or invalid:", dataToSend.id);
+        }
+        if (!dataToSend.session || dataToSend.session === 'undefined' || dataToSend.session === 'null') {
+            console.error("❌ CRITICAL: 'session' field is missing or invalid:", dataToSend.session);
+        }
+        if (!dataToSend.data || !Array.isArray(dataToSend.data)) {
+            console.error("❌ CRITICAL: 'data' field is missing or not an array:", dataToSend.data);
+        }
+        
         console.log(`🚀 Sending ${dataPoints.length} trial data points to EEG-task-data-server`);
         console.log("📡 Server URL:", serverURL);
         console.log("� API Requirements Check:");
@@ -1128,8 +1146,57 @@ class GameScene extends Phaser.Scene {
             }
         });
     }
-
-    1;
+    
+    // Test function to verify HTTP server communication
+    testHttpServer() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const apiURL = urlParams.get('apiURL') || '127.0.0.1';
+        const apiPort = urlParams.get('apiPort') || '5000';
+        const apiEndpoint = urlParams.get('apiEndpoint') || '/submit_data';
+        const serverURL = `http://${apiURL}:${apiPort}${apiEndpoint}`;
+        
+        const testData = {
+            id: "test_subject",
+            session: "test_session",
+            task: "test_task",
+            write_mode: "append",
+            data: [
+                {
+                    time: Date.now(),
+                    value: 0.5,
+                    marker: "test_marker"
+                }
+            ]
+        };
+        
+        console.log("🧪 Testing HTTP server with minimal data...");
+        console.log("Test data:", JSON.stringify(testData, null, 2));
+        
+        fetch(serverURL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(testData)
+        })
+        .then(response => {
+            console.log("🧪 Test response status:", response.status, response.statusText);
+            if (response.ok) {
+                return response.json();
+            } else {
+                return response.text().then(errorText => {
+                    console.error("🧪 Test error response:", errorText);
+                    throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
+                });
+            }
+        })
+        .then(data => {
+            console.log("🧪 Test successful:", data);
+        })
+        .catch(error => {
+            console.error("🧪 Test failed:", error);
+        });
+    }
     showConfidence() {
         // // block one side
         // this.blockedSide = this.trialInfo[this.trialNumber]["blockedSide"];
