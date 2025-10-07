@@ -978,26 +978,38 @@ class GameScene extends Phaser.Scene {
      * Saves data to HTTP server in EEG-task-data-server format.
      */
     saveToHttpServer() {
-        // Get URL parameters for server configuration
-        const urlParams = new URLSearchParams(window.location.search);
-        const apiURL = urlParams.get('apiURL') || '127.0.0.1';
-        const apiPort = urlParams.get('apiPort') || '5000';
-        const apiEndpoint = urlParams.get('apiEndpoint') || '/submit_data';
+        console.log("🚨 saveToHttpServer() STARTED - Line by line debugging:");
+        console.log("🚨 Step 1: Function entry");
         
-        const serverURL = `http://${apiURL}:${apiPort}${apiEndpoint}`;
-        
-        // Get trial data from registry
-        const allTrialData = this.registry.get("data");
-        
-        // Validate required registry values
-        const subjectID = this.registry.get("subjectID");
-        const session = this.registry.get("SESSION");
-        const task = this.registry.get("task");
-        
-        console.log("Registry validation:");
-        console.log("- subjectID:", subjectID, "(type:", typeof subjectID, ")");
-        console.log("- session:", session, "(type:", typeof session, ")");
-        console.log("- task:", task, "(type:", typeof task, ")");
+        try {
+            // Get URL parameters for server configuration
+            console.log("🚨 Step 2: Getting URL parameters");
+            const urlParams = new URLSearchParams(window.location.search);
+            const apiURL = urlParams.get('apiURL') || '127.0.0.1';
+            const apiPort = urlParams.get('apiPort') || '5000';
+            const apiEndpoint = urlParams.get('apiEndpoint') || '/submit_data';
+            
+            console.log("🚨 Step 3: URL params obtained:", { apiURL, apiPort, apiEndpoint });
+            
+            const serverURL = `http://${apiURL}:${apiPort}${apiEndpoint}`;
+            console.log("🚨 Step 4: Server URL:", serverURL);
+            
+            // Get trial data from registry
+            console.log("🚨 Step 5: Getting registry data");
+            const allTrialData = this.registry.get("data");
+            console.log("🚨 Step 6: allTrialData obtained:", !!allTrialData);
+            
+            // Validate required registry values
+            console.log("🚨 Step 7: Getting registry values");
+            const subjectID = this.registry.get("subjectID");
+            const session = this.registry.get("SESSION");
+            const task = this.registry.get("task");
+            console.log("🚨 Step 8: Registry values obtained");
+            
+            console.log("Registry validation:");
+            console.log("- subjectID:", subjectID, "(type:", typeof subjectID, ")");
+            console.log("- session:", session, "(type:", typeof session, ")");
+            console.log("- task:", task, "(type:", typeof task, ")");
         console.log("- allTrialData keys:", allTrialData ? Object.keys(allTrialData).length : "null/undefined");
         
         if (!subjectID || subjectID === "undefined" || subjectID === "null") {
@@ -1190,6 +1202,11 @@ class GameScene extends Phaser.Scene {
                 console.error("   - Malformed JSON");
             }
         });
+        
+        } catch (error) {
+            console.error("🚨 CRITICAL ERROR in saveToHttpServer:", error);
+            console.error("🚨 Error stack:", error.stack);
+        }
     }
     
     // Test function to verify HTTP server communication
