@@ -1048,6 +1048,7 @@ class GameScene extends Phaser.Scene {
             
             // Create data point with all trial information
             // The 'time' field is required by EEG-task-data-server
+            // Avoid duplicates by being explicit about which fields to include
             const dataPoint = {
                 time: trialTimestamp, // Required: epoch milliseconds
                 trial: trial.trial || 0,
@@ -1064,8 +1065,16 @@ class GameScene extends Phaser.Scene {
                 purple_bet: trial.purpleBet || 0,
                 bet_scaling: trial.betScaling || 1.0,
                 marker: `trial_${trial.trial || 0}_${trial.trialType || "unknown"}`,
-                // Add any other fields from the original trial data
-                ...trial // Spread all original trial data
+                
+                // Add specific additional fields that might be useful
+                asteroid_speed: trial.asteroidSpeed,
+                cannon_angle: trial.cannonAngle,
+                hit_position: trial.hitPosition,
+                alien_position: trial.alienPosition,
+                ball_trajectory: trial.ballTrajectory,
+                trial_start_time: trial.trialStartTime,
+                trial_end_time: trial.trialEndTime,
+                user_input_time: trial.userInputTime
             };
             
             dataPoints.push(dataPoint);
@@ -1078,7 +1087,7 @@ class GameScene extends Phaser.Scene {
             id: String(subjectID), // Required
             session: String(session), // Required  
             data: dataPoints, // Required
-            task: String(task), // Optional
+            task: "Cannonball_MF_reversal", // Fixed task name
             write_mode: "append" // Optional
         };
         
@@ -1142,7 +1151,7 @@ class GameScene extends Phaser.Scene {
         const minimalPayload = {
             "id": String(subjectID),
             "session": String(session),
-            "task": String(task),
+            "task": "Cannonball_MF_reversal", // Fixed task name
             "data": dataPoints
         };
         
@@ -1220,7 +1229,7 @@ class GameScene extends Phaser.Scene {
         const testData = {
             id: "test_subject",
             session: "test_session",
-            task: "test_task",
+            task: "Cannonball_MF_reversal",
             write_mode: "append",
             data: [
                 {
