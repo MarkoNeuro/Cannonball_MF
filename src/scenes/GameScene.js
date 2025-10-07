@@ -989,6 +989,34 @@ class GameScene extends Phaser.Scene {
         // Get trial data from registry
         const allTrialData = this.registry.get("data");
         
+        // Validate required registry values
+        const subjectID = this.registry.get("subjectID");
+        const session = this.registry.get("SESSION");
+        const task = this.registry.get("task");
+        
+        console.log("Registry validation:");
+        console.log("- subjectID:", subjectID, "(type:", typeof subjectID, ")");
+        console.log("- session:", session, "(type:", typeof session, ")");
+        console.log("- task:", task, "(type:", typeof task, ")");
+        console.log("- allTrialData keys:", allTrialData ? Object.keys(allTrialData).length : "null/undefined");
+        
+        if (!subjectID) {
+            console.error("❌ Missing or invalid subjectID in registry:", subjectID);
+            return;
+        }
+        if (!session) {
+            console.error("❌ Missing or invalid SESSION in registry:", session);
+            return;
+        }
+        if (!task) {
+            console.error("❌ Missing or invalid task in registry:", task);
+            return;
+        }
+        if (!allTrialData || Object.keys(allTrialData).length === 0) {
+            console.error("❌ No trial data found in registry:", allTrialData);
+            return;
+        }
+        
         // Convert trial data to EEG-task-data-server format
         const dataPoints = [];
         const currentTime = Date.now(); // Base timestamp in milliseconds
@@ -996,26 +1024,33 @@ class GameScene extends Phaser.Scene {
         // Process each trial
         Object.keys(allTrialData).forEach((trialKey, index) => {
             const trial = allTrialData[trialKey];
+            
+            // Validate trial data
+            if (!trial) {
+                console.warn("⚠️ Skipping null/undefined trial:", trialKey);
+                return;
+            }
+            
             // Create a timestamp for this trial (incrementally spaced)
             const trialTimestamp = currentTime + (index * 1000); // 1 second apart
             
-            // Create data point for this trial
+            // Create data point for this trial with safe defaults
             const dataPoint = {
                 time: trialTimestamp,
-                trial: trial.trial,
-                trial_type: trial.trialType,
-                score: trial.score,
-                n_hits: trial.nHits,
-                response: trial.response,
-                ball_colour: trial.ballColour,
+                trial: trial.trial || 0,
+                trial_type: trial.trialType || "unknown",
+                score: trial.score || 0,
+                n_hits: trial.nHits || 0,
+                response: trial.response || "none",
+                ball_colour: trial.ballColour || "unknown",
                 exploded: trial.exploded ? 1 : 0, // Convert boolean to numeric
-                trial_outcome: trial.trialOutcome,
-                rt: trial.RT,
-                confidence: trial.confidence,
-                pink_bet: trial.pinkBet,
-                purple_bet: trial.purpleBet,
-                bet_scaling: trial.betScaling,
-                marker: `trial_${trial.trial}_${trial.trialType}`
+                trial_outcome: trial.trialOutcome || "incomplete",
+                rt: trial.RT || 0,
+                confidence: trial.confidence || 0,
+                pink_bet: trial.pinkBet || 0,
+                purple_bet: trial.purpleBet || 0,
+                bet_scaling: trial.betScaling || 1.0,
+                marker: `trial_${trial.trial || 0}_${trial.trialType || "unknown"}`
             };
             
             dataPoints.push(dataPoint);
@@ -1023,14 +1058,24 @@ class GameScene extends Phaser.Scene {
         
         // Format according to EEG-task-data-server API specification
         const dataToSend = {
-            id: this.registry.get("subjectID"),
-            session: this.registry.get("SESSION"),
-            task: this.registry.get("task") || "cannonball_mf",
+            id: String(subjectID), // Ensure it's a string
+            session: String(session), // Ensure it's a string
+            task: String(task), // Ensure it's a string
             write_mode: "append", // Default to append mode
             data: dataPoints
         };
         
-        console.log(`Sending ${dataPoints.length} trial data points to EEG-task-data-server`);
+        console.log(`🚀 Sending ${dataPoints.length} trial data points to EEG-task-data-server`);
+        console.log("📡 Server URL:", serverURL);
+        console.log("📦 Data structure:", {
+            id: dataToSend.id,
+            session: dataToSend.session,
+            task: dataToSend.task,
+            write_mode: dataToSend.write_mode,
+            data_length: dataToSend.data.length,
+            first_data_point: dataToSend.data[0] || "none"
+        });
+        console.log("📋 Full payload:", JSON.stringify(dataToSend, null, 2));
 
         fetch(serverURL, {
             method: 'POST',
@@ -1040,11 +1085,16 @@ class GameScene extends Phaser.Scene {
             body: JSON.stringify(dataToSend)
         })
         .then(response => {
+            console.log("📨 Server response status:", response.status, response.statusText);
             if (response.ok) {
-                console.log("Data successfully sent to EEG-task-data-server!");
+                console.log("✅ Data successfully sent to EEG-task-data-server!");
                 return response.json();
             } else {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                // Try to get the error details from the response
+                return response.text().then(errorText => {
+                    console.error("❌ Server error response:", errorText);
+                    throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
+                });
             }
         })
         .then(data => {
@@ -1056,7 +1106,22 @@ class GameScene extends Phaser.Scene {
             }
         })
         .catch(error => {
-            console.error("Error sending data to EEG-task-data-server:", error);
+            console.error("❌ Error sending data to EEG-task-data-server:", error);
+            console.error("🔍 Error details:");
+            console.error("  - Message:", error.message);
+            console.error("  - Stack:", error.stack);
+            
+            // Check if it's a network error
+            if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                console.error("🌐 Network Error: Server might not be running or accessible");
+                console.error("📡 Attempted URL:", serverURL);
+            } else if (error.message.includes('400')) {
+                console.error("📋 Bad Request: Check the data format and required fields");
+                console.error("💡 Common causes:");
+                console.error("   - Missing required fields (id, session, task, data)");
+                console.error("   - Invalid data types");
+                console.error("   - Malformed JSON");
+            }
         });
     }
 
