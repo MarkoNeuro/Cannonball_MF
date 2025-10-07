@@ -1000,15 +1000,15 @@ class GameScene extends Phaser.Scene {
         console.log("- task:", task, "(type:", typeof task, ")");
         console.log("- allTrialData keys:", allTrialData ? Object.keys(allTrialData).length : "null/undefined");
         
-        if (!subjectID) {
+        if (!subjectID || subjectID === "undefined" || subjectID === "null") {
             console.error("❌ Missing or invalid subjectID in registry:", subjectID);
             return;
         }
-        if (!session) {
+        if (!session || session === "undefined" || session === "null") {
             console.error("❌ Missing or invalid SESSION in registry:", session);
             return;
         }
-        if (!task) {
+        if (!task || task === "undefined" || task === "null") {
             console.error("❌ Missing or invalid task in registry:", task);
             return;
         }
@@ -1034,9 +1034,10 @@ class GameScene extends Phaser.Scene {
             // Create a timestamp for this trial (incrementally spaced)
             const trialTimestamp = currentTime + (index * 1000); // 1 second apart
             
-            // Create data point for this trial with safe defaults
+            // Create data point with all trial information
+            // The 'time' field is required by EEG-task-data-server
             const dataPoint = {
-                time: trialTimestamp,
+                time: trialTimestamp, // Required: epoch milliseconds
                 trial: trial.trial || 0,
                 trial_type: trial.trialType || "unknown",
                 score: trial.score || 0,
@@ -1050,31 +1051,34 @@ class GameScene extends Phaser.Scene {
                 pink_bet: trial.pinkBet || 0,
                 purple_bet: trial.purpleBet || 0,
                 bet_scaling: trial.betScaling || 1.0,
-                marker: `trial_${trial.trial || 0}_${trial.trialType || "unknown"}`
+                marker: `trial_${trial.trial || 0}_${trial.trialType || "unknown"}`,
+                // Add any other fields from the original trial data
+                ...trial // Spread all original trial data
             };
             
             dataPoints.push(dataPoint);
         });
         
         // Format according to EEG-task-data-server API specification
+        // Required fields: id, session, data
+        // Optional fields: task, write_mode
         const dataToSend = {
-            id: String(subjectID), // Ensure it's a string
-            session: String(session), // Ensure it's a string
-            task: String(task), // Ensure it's a string
-            write_mode: "append", // Default to append mode
-            data: dataPoints
+            id: String(subjectID), // Required
+            session: String(session), // Required  
+            data: dataPoints, // Required
+            task: String(task), // Optional
+            write_mode: "append" // Optional
         };
         
         console.log(`🚀 Sending ${dataPoints.length} trial data points to EEG-task-data-server`);
         console.log("📡 Server URL:", serverURL);
-        console.log("📦 Data structure:", {
-            id: dataToSend.id,
-            session: dataToSend.session,
-            task: dataToSend.task,
-            write_mode: dataToSend.write_mode,
-            data_length: dataToSend.data.length,
-            first_data_point: dataToSend.data[0] || "none"
-        });
+        console.log("� API Requirements Check:");
+        console.log("  - id (required):", dataToSend.id);
+        console.log("  - session (required):", dataToSend.session);
+        console.log("  - data (required):", Array.isArray(dataToSend.data) ? `Array[${dataToSend.data.length}]` : dataToSend.data);
+        console.log("  - task (optional):", dataToSend.task);
+        console.log("  - write_mode (optional):", dataToSend.write_mode);
+        console.log("🔍 First data point sample:", dataToSend.data[0] || "none");
         console.log("📋 Full payload:", JSON.stringify(dataToSend, null, 2));
 
         fetch(serverURL, {
