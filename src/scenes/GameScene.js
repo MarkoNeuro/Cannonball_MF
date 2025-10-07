@@ -975,7 +975,7 @@ class GameScene extends Phaser.Scene {
     }
 
     /**
-     * Saves data to HTTP server.
+     * Saves data to HTTP server in EEG-task-data-server format.
      */
     saveToHttpServer() {
         // Get URL parameters for server configuration
@@ -986,15 +986,51 @@ class GameScene extends Phaser.Scene {
         
         const serverURL = `http://${apiURL}:${apiPort}${apiEndpoint}`;
         
+        // Get trial data from registry
+        const allTrialData = this.registry.get("data");
+        
+        // Convert trial data to EEG-task-data-server format
+        const dataPoints = [];
+        const currentTime = Date.now(); // Base timestamp in milliseconds
+        
+        // Process each trial
+        Object.keys(allTrialData).forEach((trialKey, index) => {
+            const trial = allTrialData[trialKey];
+            // Create a timestamp for this trial (incrementally spaced)
+            const trialTimestamp = currentTime + (index * 1000); // 1 second apart
+            
+            // Create data point for this trial
+            const dataPoint = {
+                time: trialTimestamp,
+                trial: trial.trial,
+                trial_type: trial.trialType,
+                score: trial.score,
+                n_hits: trial.nHits,
+                response: trial.response,
+                ball_colour: trial.ballColour,
+                exploded: trial.exploded ? 1 : 0, // Convert boolean to numeric
+                trial_outcome: trial.trialOutcome,
+                rt: trial.RT,
+                confidence: trial.confidence,
+                pink_bet: trial.pinkBet,
+                purple_bet: trial.purpleBet,
+                bet_scaling: trial.betScaling,
+                marker: `trial_${trial.trial}_${trial.trialType}`
+            };
+            
+            dataPoints.push(dataPoint);
+        });
+        
+        // Format according to EEG-task-data-server API specification
         const dataToSend = {
-            subjectID: this.registry.get("subjectID"),
-            sessionID: this.registry.get("SESSION"),
-            studyID: this.registry.get("studyID"),
-            task: this.registry.get("task"),
-            trial_data: this.registry.get("data"),
-            timestamp: new Date().toISOString(),
-            trial_info_file: this.registry.get("trialInfoFile")
+            id: this.registry.get("subjectID"),
+            session: this.registry.get("SESSION"),
+            task: this.registry.get("task") || "cannonball_mf",
+            write_mode: "append", // Default to append mode
+            data: dataPoints
         };
+        
+        console.log(`Sending ${dataPoints.length} trial data points to EEG-task-data-server`);
 
         fetch(serverURL, {
             method: 'POST',
@@ -1005,17 +1041,22 @@ class GameScene extends Phaser.Scene {
         })
         .then(response => {
             if (response.ok) {
-                console.log("Data successfully sent to HTTP server!");
+                console.log("Data successfully sent to EEG-task-data-server!");
                 return response.json();
             } else {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
         })
         .then(data => {
-            console.log('Server response:', data);
+            console.log('EEG-task-data-server response:', data);
+            if (data.success) {
+                console.log(`✅ ${data.message}`);
+                console.log(`📁 File: ${data.filename}`);
+                console.log(`📊 Records added: ${data.records_added}, Total: ${data.total_records}`);
+            }
         })
         .catch(error => {
-            console.error("Error sending data to HTTP server:", error);
+            console.error("Error sending data to EEG-task-data-server:", error);
         });
     }
 
