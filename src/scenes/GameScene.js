@@ -1080,12 +1080,38 @@ class GameScene extends Phaser.Scene {
         // Check if any required fields are empty strings or falsy
         if (!dataToSend.id || dataToSend.id === 'undefined' || dataToSend.id === 'null') {
             console.error("❌ CRITICAL: 'id' field is missing or invalid:", dataToSend.id);
+            console.error("❌ STOPPING: Cannot send data without valid 'id' field");
+            return;
         }
         if (!dataToSend.session || dataToSend.session === 'undefined' || dataToSend.session === 'null') {
             console.error("❌ CRITICAL: 'session' field is missing or invalid:", dataToSend.session);
+            console.error("❌ STOPPING: Cannot send data without valid 'session' field");
+            return;
         }
         if (!dataToSend.data || !Array.isArray(dataToSend.data)) {
             console.error("❌ CRITICAL: 'data' field is missing or not an array:", dataToSend.data);
+            console.error("❌ STOPPING: Cannot send data without valid 'data' array");
+            return;
+        }
+        
+        // Final check - create a minimal test object to ensure the structure is correct
+        const minimalTestData = {
+            id: dataToSend.id,
+            session: dataToSend.session,
+            data: dataToSend.data
+        };
+        
+        console.log("🔬 MINIMAL TEST STRUCTURE:");
+        console.log("Keys in minimal object:", Object.keys(minimalTestData));
+        console.log("JSON.stringify test:", JSON.stringify(minimalTestData).substring(0, 200) + "...");
+        
+        // Try parsing the JSON to ensure it's valid
+        try {
+            const testParse = JSON.parse(JSON.stringify(dataToSend));
+            console.log("✅ JSON is valid and parseable");
+        } catch (e) {
+            console.error("❌ JSON PARSE ERROR:", e);
+            return;
         }
         
         console.log(`🚀 Sending ${dataPoints.length} trial data points to EEG-task-data-server`);
@@ -1099,12 +1125,31 @@ class GameScene extends Phaser.Scene {
         console.log("🔍 First data point sample:", dataToSend.data[0] || "none");
         console.log("📋 Full payload:", JSON.stringify(dataToSend, null, 2));
 
+        // BACKUP APPROACH - Try with minimal required fields only first
+        // Using exact format from EEG-task-data-server test_api.py
+        const minimalPayload = {
+            "id": String(subjectID),
+            "session": String(session),
+            "task": String(task),
+            "data": dataPoints
+        };
+        
+        console.log("🚨 TRYING MINIMAL PAYLOAD (exact API format):");
+        console.log("Payload keys:", Object.keys(minimalPayload));
+        console.log("Payload values:");
+        console.log("  id:", typeof minimalPayload.id, "=", minimalPayload.id);
+        console.log("  session:", typeof minimalPayload.session, "=", minimalPayload.session);
+        console.log("  task:", typeof minimalPayload.task, "=", minimalPayload.task);
+        console.log("  data:", Array.isArray(minimalPayload.data), "length =", minimalPayload.data ? minimalPayload.data.length : "null");
+        console.log("Full minimal payload:");
+        console.log(JSON.stringify(minimalPayload, null, 2));
+
         fetch(serverURL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(dataToSend)
+            body: JSON.stringify(minimalPayload) // Try minimal payload first
         })
         .then(response => {
             console.log("📨 Server response status:", response.status, response.statusText);
