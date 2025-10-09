@@ -699,15 +699,18 @@ class GameScene extends Phaser.Scene {
             
             console.log(`🚀 SPEED BOOST! Score: ${this.score} - Alien speed increased to: ${this.alienSpeed}`);
             
-            // Show visual feedback for speed increase (green flash)
+            // Show visual feedback for speed increase (red tint flash)
             if (this.alien) {
                 this.tweens.add({
                     targets: this.alien,
-                    alpha: 0.3,
-                    duration: 100,
+                    tint: 0xff0000, // Red tint
+                    duration: 150,
                     ease: "Power2",
                     yoyo: true,
-                    repeat: 2
+                    repeat: 1,
+                    onComplete: () => {
+                        this.alien.clearTint(); // Remove tint after animation
+                    }
                 });
             }
         }
@@ -724,18 +727,15 @@ class GameScene extends Phaser.Scene {
             
             console.log(`📉 SPEED DECREASE! Score: ${this.score} - Alien speed decreased to: ${this.alienSpeed}`);
             
-            // Show visual feedback for speed decrease (red flash)
+            // Show visual feedback for speed decrease (alpha flash)
             if (this.alien) {
                 this.tweens.add({
                     targets: this.alien,
-                    tint: 0xff0000, // Red tint
-                    duration: 150,
+                    alpha: 0.3,
+                    duration: 100,
                     ease: "Power2",
                     yoyo: true,
-                    repeat: 1,
-                    onComplete: () => {
-                        this.alien.clearTint(); // Remove tint after animation
-                    }
+                    repeat: 2
                 });
             }
         }
