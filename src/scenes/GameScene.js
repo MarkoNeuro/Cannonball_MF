@@ -11,6 +11,7 @@ import {
 } from "../classes/ui.js";
 import Asteroids from "../classes/asteroids.js";
 import { saveData } from "../data_RL.js";
+import { gameConfigSettings } from "../config.js";
 
 class GameScene extends Phaser.Scene {
     constructor(key) {
