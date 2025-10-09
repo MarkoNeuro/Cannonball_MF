@@ -54,7 +54,11 @@ var startGame = function (uid = null, saveMethod = "firebase") {
         // Override speedEffect setting from URL parameter if provided
         if (speedEffect !== undefined) {
             gameConfigSettings.enableAlienSpeedProgression = speedEffect;
+            // Update alien speed based on progression setting
+            const effectiveAlienSpeed = speedEffect ? gameConfigSettings.alienSpeed : gameConfigSettings.alienSpeedNoProgression;
+            game.registry.set("alienSpeed", effectiveAlienSpeed);
             console.log(`Speed effect ${speedEffect ? 'enabled' : 'disabled'} from URL parameter`);
+            console.log(`Alien speed set to: ${effectiveAlienSpeed}`);
         }
 
         // Set testing flag

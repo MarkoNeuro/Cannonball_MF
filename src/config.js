@@ -26,7 +26,8 @@ const gameConfigSettings = {
     redirectURL: "https://app.prolific.com/submissions/complete?cc=CC6FNRFD",
 
     // Settings for game play
-    alienSpeed: 90,
+    alienSpeed: 90, // Base speed for progression mode
+    alienSpeedNoProgression: 120, // Speed when progression is disabled
     debugPhysics: false,
     dataSaveInterval: 5,
     

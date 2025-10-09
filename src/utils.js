@@ -10,6 +10,8 @@ export function applyGameConfig(game, task) {
     const {
         redirectURL,
         alienSpeed,
+        alienSpeedNoProgression,
+        enableAlienSpeedProgression,
         debugPhysics,
         dataSaveInterval,
         MB,
@@ -17,11 +19,14 @@ export function applyGameConfig(game, task) {
         MF
     } = gameConfigSettings;
 
+    // Determine which alien speed to use based on progression setting
+    const effectiveAlienSpeed = enableAlienSpeedProgression ? alienSpeed : alienSpeedNoProgression;
+
     // Apply basic settings
     game.registry.set("trial", 0);
     game.registry.set("data", {});
     game.registry.set("redirectURL", redirectURL);
-    game.registry.set("alienSpeed", alienSpeed);
+    game.registry.set("alienSpeed", effectiveAlienSpeed);
     game.registry.set("debugPhysics", debugPhysics);
     game.registry.set("dataSaveInterval", dataSaveInterval);
 
