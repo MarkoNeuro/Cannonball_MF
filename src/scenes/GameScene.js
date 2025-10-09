@@ -94,7 +94,8 @@ class GameScene extends Phaser.Scene {
         this.baseAlienSpeed = this.alienSpeed; // Store original speed
         this.lastSpeedIncreaseScore = 0; // Track when we last increased speed
         this.speedIncreaseInterval = 1000; // Increase speed every 1000 points
-        this.speedIncreaseAmount = 20; // Increase speed by 20 units each time
+        this.speedIncreaseAmount = 12.5; // Increase speed by 12.5 units each time
+        this.speedDecreaseAmount = 15; // Decrease speed by 15 units when going below milestone
 
         // Retrieve the physics debugging status
         this.debugPhysics = this.registry.get("debugPhysics");
@@ -678,14 +679,14 @@ class GameScene extends Phaser.Scene {
     }
 
     /**
-     * Check if alien speed should be increased based on score milestones
+     * Check if alien speed should be increased or decreased based on score milestones
      */
     checkAndUpdateAlienSpeed() {
         // Calculate how many 1000-point milestones have been reached
         const currentMilestone = Math.floor(this.score / this.speedIncreaseInterval);
         const lastMilestone = Math.floor(this.lastSpeedIncreaseScore / this.speedIncreaseInterval);
         
-        // If we've crossed a new milestone, increase alien speed
+        // If we've crossed a new milestone upward, increase alien speed
         if (currentMilestone > lastMilestone) {
             this.lastSpeedIncreaseScore = this.score;
             this.alienSpeed += this.speedIncreaseAmount;
@@ -698,9 +699,8 @@ class GameScene extends Phaser.Scene {
             
             console.log(`🚀 SPEED BOOST! Score: ${this.score} - Alien speed increased to: ${this.alienSpeed}`);
             
-            // Optional: Show a brief visual feedback for speed increase
+            // Show visual feedback for speed increase (green flash)
             if (this.alien) {
-                // Flash the alien briefly to indicate speed increase
                 this.tweens.add({
                     targets: this.alien,
                     alpha: 0.3,
@@ -708,6 +708,34 @@ class GameScene extends Phaser.Scene {
                     ease: "Power2",
                     yoyo: true,
                     repeat: 2
+                });
+            }
+        }
+        // If we've gone below a milestone, decrease alien speed
+        else if (currentMilestone < lastMilestone) {
+            this.lastSpeedIncreaseScore = this.score;
+            this.alienSpeed = Math.max(this.baseAlienSpeed, this.alienSpeed - this.speedDecreaseAmount);
+            
+            // Update the alien's actual speed if it exists and is moving
+            if (this.alien && this.alien.moving) {
+                this.alien.speed = this.alienSpeed;
+                this.alien.setVelocity(this.alienSpeed, this.alienSpeed);
+            }
+            
+            console.log(`📉 SPEED DECREASE! Score: ${this.score} - Alien speed decreased to: ${this.alienSpeed}`);
+            
+            // Show visual feedback for speed decrease (red flash)
+            if (this.alien) {
+                this.tweens.add({
+                    targets: this.alien,
+                    tint: 0xff0000, // Red tint
+                    duration: 150,
+                    ease: "Power2",
+                    yoyo: true,
+                    repeat: 1,
+                    onComplete: () => {
+                        this.alien.clearTint(); // Remove tint after animation
+                    }
                 });
             }
         }

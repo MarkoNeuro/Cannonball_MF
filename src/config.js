@@ -26,7 +26,7 @@ const gameConfigSettings = {
     redirectURL: "https://app.prolific.com/submissions/complete?cc=CC6FNRFD",
 
     // Settings for game play
-    alienSpeed: 120,
+    alienSpeed: 100,
     debugPhysics: false,
     dataSaveInterval: 5,
 
