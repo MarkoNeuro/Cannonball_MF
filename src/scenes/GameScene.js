@@ -89,6 +89,12 @@ class GameScene extends Phaser.Scene {
 
         // Retrieve the speed with which the alien moves
         this.alienSpeed = this.registry.get("alienSpeed");
+        
+        // Track alien speed progression for engagement
+        this.baseAlienSpeed = this.alienSpeed; // Store original speed
+        this.lastSpeedIncreaseScore = 0; // Track when we last increased speed
+        this.speedIncreaseInterval = 1000; // Increase speed every 1000 points
+        this.speedIncreaseAmount = 20; // Increase speed by 20 units each time
 
         // Retrieve the physics debugging status
         this.debugPhysics = this.registry.get("debugPhysics");
@@ -315,6 +321,7 @@ class GameScene extends Phaser.Scene {
         // Listen to the "shown" event of the bonus text element to trigger score update and start a new trial
         this.bonusText.on("shown", () => {
             this.score += this.scoreIncrease; // Update the score
+            this.checkAndUpdateAlienSpeed(); // Check if alien speed should increase
             this.hideConfidence(); // Hide the confidence element
             this.startNewTrial(); // Start a new trial
         });
@@ -566,6 +573,7 @@ class GameScene extends Phaser.Scene {
 
         // Update the score
         this.score -= 50;
+        this.checkAndUpdateAlienSpeed(); // Check if alien speed should increase
 
         this.topUI.updateScore(this.score);
 
@@ -669,9 +677,46 @@ class GameScene extends Phaser.Scene {
         this.handleKeyPress("TWO", 1);
     }
 
+    /**
+     * Check if alien speed should be increased based on score milestones
+     */
+    checkAndUpdateAlienSpeed() {
+        // Calculate how many 1000-point milestones have been reached
+        const currentMilestone = Math.floor(this.score / this.speedIncreaseInterval);
+        const lastMilestone = Math.floor(this.lastSpeedIncreaseScore / this.speedIncreaseInterval);
+        
+        // If we've crossed a new milestone, increase alien speed
+        if (currentMilestone > lastMilestone) {
+            this.lastSpeedIncreaseScore = this.score;
+            this.alienSpeed += this.speedIncreaseAmount;
+            
+            // Update the alien's actual speed if it exists and is moving
+            if (this.alien && this.alien.moving) {
+                this.alien.speed = this.alienSpeed;
+                this.alien.setVelocity(this.alienSpeed, this.alienSpeed);
+            }
+            
+            console.log(`🚀 SPEED BOOST! Score: ${this.score} - Alien speed increased to: ${this.alienSpeed}`);
+            
+            // Optional: Show a brief visual feedback for speed increase
+            if (this.alien) {
+                // Flash the alien briefly to indicate speed increase
+                this.tweens.add({
+                    targets: this.alien,
+                    alpha: 0.3,
+                    duration: 100,
+                    ease: "Power2",
+                    yoyo: true,
+                    repeat: 2
+                });
+            }
+        }
+    }
+
     updateScore() {
         this.score += 100;
         this.nHits += 1;
+        this.checkAndUpdateAlienSpeed(); // Check if alien speed should increase
         this.topUI.updateScore(this.score);
         this.topUI.updateAlienCount(this.nHits);
 
@@ -696,6 +741,7 @@ class GameScene extends Phaser.Scene {
             pinkBet: this.pinkBet,
             purpleBet: this.purpleBet,
             betScaling: this.betScaling,
+            alienSpeed: this.alienSpeed, // Track current alien speed for analysis
         };
 
         // Store data
@@ -1074,7 +1120,8 @@ class GameScene extends Phaser.Scene {
                 ball_trajectory: trial.ballTrajectory,
                 trial_start_time: trial.trialStartTime,
                 trial_end_time: trial.trialEndTime,
-                user_input_time: trial.userInputTime
+                user_input_time: trial.userInputTime,
+                alien_speed: trial.alienSpeed || 0 // Track alien speed progression
             };
             
             dataPoints.push(dataPoint);
