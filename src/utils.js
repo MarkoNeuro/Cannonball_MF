@@ -117,6 +117,9 @@ export function extractUrlVariables() {
     // Get debug physics from URL
     var debugPhysics = urlParams.has('debugPhysics');
 
+    // Get speed effect from URL
+    var speedEffect = urlParams.has('speedEffect');
+
     // Check if the "SHORT" variable is present in the URL
     var short = urlParams.has('SHORT');
 
@@ -132,6 +135,7 @@ export function extractUrlVariables() {
         trialInfoFile: trialInfoFile,
         practice: practice,
         debugPhysics: debugPhysics,
+        speedEffect: speedEffect,
         short: short,
         task: task
     };

@@ -29,6 +29,9 @@ const gameConfigSettings = {
     alienSpeed: 90,
     debugPhysics: false,
     dataSaveInterval: 5,
+    
+    // Alien speed progression settings
+    enableAlienSpeedProgression: true, // Set to false to disable speed increases/decreases
 
     // Task-specific settings - Transition Learning Task
     MB: {

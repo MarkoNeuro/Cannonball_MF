@@ -73,6 +73,13 @@
                             Debug Physics (Show collision boundaries)
                         </label>
                     </div>
+                    <div class="flex items-center">
+                        <input id="speed_effect" name="speed_effect" type="checkbox" checked
+                            class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                        <label for="speed_effect" class="ml-2 block text-sm text-gray-900">
+                            Speed Effect
+                        </label>
+                    </div>
                 </div>
             </div>
 
@@ -225,6 +232,7 @@
             const practiceMode = document.getElementById('practice_mode').checked;
             const skipInstructions = document.getElementById('skip_instructions').checked;
             const debugPhysics = document.getElementById('debug_physics').checked;
+            const speedEffect = document.getElementById('speed_effect').checked;
             const saveMethod = document.querySelector('input[name="saveMethod"]:checked').value;
 
             // Get configuration based on save method
@@ -274,6 +282,9 @@
             if (debugPhysics) {
                 params.append('debugPhysics', 'true');
             }
+            if (speedEffect) {
+                params.append('speedEffect', 'true');
+            }
             
             // Add save method
             params.append('saveMethod', saveMethod);
@@ -301,6 +312,7 @@
                 practiceMode: practiceMode,
                 skipInstructions: skipInstructions,
                 debugPhysics: debugPhysics,
+                speedEffect: speedEffect,
                 saveMethod: saveMethod,
                 ...(saveMethod === 'http' && { apiURL, apiPort, apiEndpoint })
             });

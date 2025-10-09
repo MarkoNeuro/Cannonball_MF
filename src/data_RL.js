@@ -27,6 +27,12 @@ export function initSubject(game) {
         trial_info_file: gameConfigSettings.MF.trialInfoFile,
         trial_data: [],
         attention_checks: [],
+        // Add configuration metadata for research analysis
+        config_metadata: {
+            alien_speed_progression_enabled: gameConfigSettings.enableAlienSpeedProgression,
+            base_alien_speed: gameConfigSettings.alienSpeed,
+            timestamp: new Date().toISOString()
+        }
     })
         .then(() => {
             console.log("Data successfully written!");

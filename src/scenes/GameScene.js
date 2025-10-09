@@ -682,6 +682,11 @@ class GameScene extends Phaser.Scene {
      * Check if alien speed should be increased or decreased based on score milestones
      */
     checkAndUpdateAlienSpeed() {
+        // Check if alien speed progression is enabled in config
+        if (!gameConfigSettings.enableAlienSpeedProgression) {
+            return; // Exit early if speed progression is disabled
+        }
+        
         // Calculate how many 1000-point milestones have been reached
         const currentMilestone = Math.floor(this.score / this.speedIncreaseInterval);
         const lastMilestone = Math.floor(this.lastSpeedIncreaseScore / this.speedIncreaseInterval);
@@ -707,7 +712,7 @@ class GameScene extends Phaser.Scene {
                     duration: 150,
                     ease: "Power2",
                     yoyo: true,
-                    repeat: 1,
+                    repeat: 2,
                     onComplete: () => {
                         this.alien.clearTint(); // Remove tint after animation
                     }
@@ -1163,7 +1168,15 @@ class GameScene extends Phaser.Scene {
             session: String(session), // Required  
             data: dataPoints, // Required
             task: "Cannonball_MF_reversal", // Fixed task name
-            write_mode: "append" // Optional
+            write_mode: "append", // Optional
+            // Add configuration metadata for research analysis
+            config_metadata: {
+                alien_speed_progression_enabled: gameConfigSettings.enableAlienSpeedProgression,
+                base_alien_speed: this.baseAlienSpeed,
+                speed_increase_interval: this.speedIncreaseInterval,
+                speed_increase_amount: this.speedIncreaseAmount,
+                speed_decrease_amount: this.speedDecreaseAmount
+            }
         };
         
         // CRITICAL DEBUGGING - Check for missing required fields

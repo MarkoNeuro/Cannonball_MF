@@ -1,6 +1,7 @@
 // Other things
 import { extractUrlVariables, applyGameConfig } from "./utils.js";
 import gameConfig from './gameConfig.js';
+import { gameConfigSettings } from './config.js';
 
 /**
  * Function to check the start of the game.
@@ -10,7 +11,7 @@ import gameConfig from './gameConfig.js';
  */
 var startGame = function (uid = null, saveMethod = "firebase") {
     // Get URL variables
-    let { subjectID, testing, studyID, session, short, task, trialInfoFile, practice, debugPhysics } = extractUrlVariables();
+    let { subjectID, testing, studyID, session, short, task, trialInfoFile, practice, debugPhysics, speedEffect } = extractUrlVariables();
 
     // Clear start element and scroll to top
     document.getElementById("start").innerHTML = "";
@@ -48,6 +49,12 @@ var startGame = function (uid = null, saveMethod = "firebase") {
         if (debugPhysics) {
             game.registry.set("debugPhysics", true);
             console.log("Debug physics enabled from URL parameter");
+        }
+
+        // Override speedEffect setting from URL parameter if provided
+        if (speedEffect !== undefined) {
+            gameConfigSettings.enableAlienSpeedProgression = speedEffect;
+            console.log(`Speed effect ${speedEffect ? 'enabled' : 'disabled'} from URL parameter`);
         }
 
         // Set testing flag
