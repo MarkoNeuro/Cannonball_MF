@@ -103,6 +103,9 @@ class GameScene extends Phaser.Scene {
 
         // Retrieve how often to save data
         this.dataSaveInterval = this.registry.get("dataSaveInterval");
+        
+        // Track last saved trial number to avoid sending duplicates
+        this.lastSavedTrialNumber = 0;
 
         // Retrieve whether to show explode chance bars
         this.showExplodeChanceBars = this.registry.get("showExplodeChanceBars");
@@ -1113,8 +1116,16 @@ class GameScene extends Phaser.Scene {
         const dataPoints = [];
         const currentTime = Date.now(); // Base timestamp in milliseconds
         
-        // Process each trial
-        Object.keys(allTrialData).forEach((trialKey, index) => {
+        // Process only new trials (not previously saved)
+        const newTrialKeys = Object.keys(allTrialData).filter(trialKey => {
+            const trialNumber = parseInt(trialKey);
+            return trialNumber > this.lastSavedTrialNumber;
+        });
+        
+        console.log(`🚨 Step 9: Processing ${newTrialKeys.length} new trials (last saved: ${this.lastSavedTrialNumber})`);
+        
+        // Process each new trial
+        newTrialKeys.forEach((trialKey, index) => {
             const trial = allTrialData[trialKey];
             
             // Validate trial data
@@ -1138,7 +1149,7 @@ class GameScene extends Phaser.Scene {
                 response: trial.response || "none",
                 ball_colour: trial.ballColour || "unknown",
                 exploded: trial.exploded ? 1 : 0, // Convert boolean to numeric
-                trial_outcome: trial.trialOutcome || "incomplete",
+                trial_outcome: trial.trialOutcome !== undefined ? trial.trialOutcome : "incomplete",
                 rt: trial.RT || 0,
                 confidence: trial.confidence || 0,
                 pink_bet: trial.pinkBet || 0,
@@ -1280,6 +1291,10 @@ class GameScene extends Phaser.Scene {
                 console.log(`✅ ${data.message}`);
                 console.log(`📁 File: ${data.filename}`);
                 console.log(`📊 Records added: ${data.records_added}, Total: ${data.total_records}`);
+                
+                // Update last saved trial number to prevent duplicates in future saves
+                this.lastSavedTrialNumber = this.trialNumber;
+                console.log(`🔄 Updated lastSavedTrialNumber to: ${this.lastSavedTrialNumber}`);
             }
         })
         .catch(error => {
