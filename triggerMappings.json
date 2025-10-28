@@ -1,0 +1,14 @@
+{
+    "system.test": 99,
+    "system.initialized": 1,
+    "system.error": 2,
+    "game.start": 10,
+    "game.end": 11,
+    "game.response": 12,
+    "game.ballFired": 13,
+    "game.alienHit": 14,
+    "game.ballMissed": 15,
+    "game.asteroidHit": 16,
+    "game.ballExplode": 17,
+    "game.newTrial": 18
+}
