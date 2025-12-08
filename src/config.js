@@ -64,7 +64,7 @@ const gameConfigSettings = {
         leftPinkChance: -1,
         rightPinkChance: -1,
         showBrokenInstructions: false,
-        trialInfoFile: "trialinfo_MF_reversal_40segments_880trials.json" //getRandomTrialInfoFile(files) // Uncomment to select a random file from the list above
+        trialInfoFile: "trialinfo_MF_reversal_20segments_720trials.json" //getRandomTrialInfoFile(files) // Uncomment to select a random file from the list above
     }
     
 };
