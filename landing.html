@@ -35,18 +35,21 @@
                     <option value="2">Session 2</option>
                     <option value="3">Session 3</option>
                 </select>
-                <p class="text-xs text-gray-500 mt-1">Each session uses different trial configurations</p>
+                <p class="text-xs text-gray-500 mt-1">Session number for data organization</p>
             </div>
 
-            <!-- Trial Configuration (Auto-selected based on session) -->
-            <div class="mb-4">
-                <label for="trialConfig" class="block text-sm font-medium text-gray-700">Trial Configuration:</label>
-                <select id="trialConfig" name="trialConfig" disabled
-                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100 text-gray-500 sm:text-sm">
-                    <option value="trial_info_MF_reversal_40segments_880trials_s1.json">trial_info_MF_reversal_40segments_880trials_s1.json</option>
-                </select>
-                <p class="text-xs text-gray-500 mt-1">Automatically selected based on session choice</p>
-            </div>
+            <!-- Trial Configuration (Collapsible - info only, controlled by config.js) -->
+            <details class="mb-4">
+                <summary class="block text-sm font-medium text-gray-700 cursor-pointer hover:text-indigo-600">
+                    ▶ Trial Configuration
+                </summary>
+                <div class="mt-2 pl-4 border-l-2 border-gray-200">
+                    <div class="block w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-600 sm:text-sm">
+                        trialinfo_MF_reversal_20segments_720trials.json
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">720 trials, 20 segments (set in config.js)</p>
+                </div>
+            </details>
 
             <!-- Task Mode Options -->
             <div class="mb-4">
@@ -157,53 +160,8 @@
     </div>
 
     <script>
-        // Session to trial info file mapping
-        const sessionTrialMapping = {
-            "1": {
-                file: "trial_info_MF_reversal_40segments_880trials_s1.json",
-                description: "trial_info_MF_reversal_40segments_880trials_s1.json"
-            },
-            "2": {
-                file: "trial_info_MF_reversal_40segments_880trials_s2.json", 
-                description: "trial_info_MF_reversal_40segments_880trials_s2.json"
-            },
-            "3": {
-                file: "trial_info_MF_reversal_40segments_880trials_s3.json",
-                description: "trial_info_MF_reversal_40segments_880trials_s3.json"
-            }
-        };
-
-        // Handle session selection change
-        document.getElementById('sessionID').addEventListener('change', function() {
-            updateTrialConfig();
-        });
-
-        // Handle practice mode change
-        document.getElementById('practice_mode').addEventListener('change', function() {
-            updateTrialConfig();
-        });
-
-        // Function to update trial configuration based on session and practice mode
-        function updateTrialConfig() {
-            const sessionID = document.getElementById('sessionID').value;
-            const practiceMode = document.getElementById('practice_mode').checked;
-            const trialConfig = document.getElementById('trialConfig');
-            
-            if (practiceMode) {
-                // Override with practice file regardless of session
-                trialConfig.innerHTML = '<option value="trial_info_MF_practice10.json">trial_info_MF_practice10.json</option>';
-                trialConfig.value = "trial_info_MF_practice10.json";
-                console.log('Practice mode enabled: trial_info_MF_practice10.json');
-            } else {
-                // Use session-based mapping
-                const mapping = sessionTrialMapping[sessionID];
-                if (mapping) {
-                    trialConfig.innerHTML = `<option value="${mapping.file}">${mapping.description}</option>`;
-                    trialConfig.value = mapping.file;
-                    console.log(`Session ${sessionID} selected: ${mapping.file}`);
-                }
-            }
-        }
+        // Trial configuration is now controlled by config.js
+        // Practice mode is handled via URL parameter 'practice=true'
 
         // Handle save method radio button changes
         document.querySelectorAll('input[name="saveMethod"]').forEach(radio => {
@@ -228,7 +186,6 @@
             // Get form values
             const subjectID = document.getElementById('subjectID').value.trim();
             const sessionID = document.getElementById('sessionID').value;
-            const trialConfig = document.getElementById('trialConfig').value;
             const practiceMode = document.getElementById('practice_mode').checked;
             const skipInstructions = document.getElementById('skip_instructions').checked;
             const debugPhysics = document.getElementById('debug_physics').checked;
@@ -269,8 +226,7 @@
             params.append('TASK', 'MF'); // Model-Free task
             params.append('STUDY', 'CANNONBALL_REVERSAL');
             
-            // Trial configuration (automatically selected based on session)
-            params.append('trialInfoFile', trialConfig);
+            // Note: trialInfoFile is now controlled by config.js, not passed via URL
             
             // Task options
             if (practiceMode) {
@@ -308,7 +264,7 @@
                 subjectID: subjectID,
                 sessionID: sessionID,
                 task: 'MF',
-                trialConfig: trialConfig,
+                trialConfig: '(from config.js)',
                 practiceMode: practiceMode,
                 skipInstructions: skipInstructions,
                 debugPhysics: debugPhysics,
