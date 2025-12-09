@@ -763,6 +763,10 @@ class GameScene extends Phaser.Scene {
 
     storeData() {
         // DATA
+        // Calculate outcome interval (time from choice to outcome)
+        const outcomeInterval = this.outcomeTime && this.choiceTime ? 
+            Math.round(this.outcomeTime - this.choiceTime) : -999;
+        
         var trialData = {
             trial: this.trialNumber,
             trialType: this.trialType,
@@ -779,6 +783,8 @@ class GameScene extends Phaser.Scene {
             purpleBet: this.purpleBet,
             betScaling: this.betScaling,
             alienSpeed: this.alienSpeed, // Track current alien speed for analysis
+            trialStartTimestamp: this.trialStartTimestamp, // Actual epoch timestamp
+            outcomeInterval: outcomeInterval, // Time from choice to outcome (ms)
         };
 
         // Store data
@@ -927,6 +933,7 @@ class GameScene extends Phaser.Scene {
 
             // Record time at which the trial started
             this.startTime = this.game.loop.time;
+            this.trialStartTimestamp = Date.now(); // Actual epoch timestamp for data saving
 
             // Set cannon active
             this.cannonActive = true;
@@ -1134,14 +1141,14 @@ class GameScene extends Phaser.Scene {
                 return;
             }
             
-            // Create a timestamp for this trial (incrementally spaced)
-            const trialTimestamp = currentTime + (index * 1000); // 1 second apart
+            // Use actual trial timestamp if available, otherwise fallback to current time
+            const trialTimestamp = trial.trialStartTimestamp || currentTime;
             
             // Create data point with all trial information
             // The 'time' field is required by EEG-task-data-server
             // Avoid duplicates by being explicit about which fields to include
             const dataPoint = {
-                time: trialTimestamp, // Required: epoch milliseconds
+                time: trialTimestamp, // Required: epoch milliseconds (actual trial start time)
                 trial: trial.trial || 0,
                 trial_type: trial.trialType || "unknown",
                 score: trial.score || 0,
@@ -1166,7 +1173,8 @@ class GameScene extends Phaser.Scene {
                 trial_start_time: trial.trialStartTime,
                 trial_end_time: trial.trialEndTime,
                 user_input_time: trial.userInputTime,
-                alien_speed: trial.alienSpeed || 0 // Track alien speed progression
+                alien_speed: trial.alienSpeed || 0, // Track alien speed progression
+                outcome_interval: trial.outcomeInterval || 0 // Time from choice to outcome (ms)
             };
             
             dataPoints.push(dataPoint);
