@@ -4,6 +4,8 @@ import gameConfig from './gameConfig.js';
 import { gameConfigSettings } from './config.js';
 import triggerService from './triggerService.js';
 
+console.log('✅ index.js loaded, triggerService imported:', typeof triggerService);
+
 /**
  * Function to check the start of the game.
  *
@@ -13,6 +15,9 @@ import triggerService from './triggerService.js';
 var startGame = function (uid = null, saveMethod = "firebase") {
     // Get URL variables
     let { subjectID, testing, studyID, session, short, task, trialInfoFile, practice, debugPhysics, speedEffect, triggersEnabled, triggerServerURL } = extractUrlVariables();
+
+    // Debug: Log trigger settings
+    console.log('🔍 Trigger settings from URL:', { triggersEnabled, triggerServerURL });
 
     // Initialize trigger service
     triggerService.init({
