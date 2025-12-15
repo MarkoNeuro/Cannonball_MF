@@ -128,8 +128,8 @@ export function extractUrlVariables() {
     // Get triggers enabled from URL (default: true if EEG recording)
     var triggersEnabled = urlParams.has('triggers') ? getQueryVariable('triggers') === 'true' : false;
 
-    // Get trigger server URL from URL (default: localhost:5000)
-    var triggerServerURL = urlParams.has('triggerURL') ? getQueryVariable('triggerURL') : null;
+    // Get trigger server URL from URL (default: localhost:5000) - decode the URL
+    var triggerServerURL = urlParams.has('triggerURL') ? decodeURIComponent(getQueryVariable('triggerURL')) : null;
 
     // Check if the "SHORT" variable is present in the URL
     var short = urlParams.has('SHORT');
