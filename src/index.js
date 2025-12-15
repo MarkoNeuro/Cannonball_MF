@@ -2,6 +2,7 @@
 import { extractUrlVariables, applyGameConfig } from "./utils.js";
 import gameConfig from './gameConfig.js';
 import { gameConfigSettings } from './config.js';
+import triggerService from './triggerService.js';
 
 /**
  * Function to check the start of the game.
@@ -11,7 +12,18 @@ import { gameConfigSettings } from './config.js';
  */
 var startGame = function (uid = null, saveMethod = "firebase") {
     // Get URL variables
-    let { subjectID, testing, studyID, session, short, task, trialInfoFile, practice, debugPhysics, speedEffect } = extractUrlVariables();
+    let { subjectID, testing, studyID, session, short, task, trialInfoFile, practice, debugPhysics, speedEffect, triggersEnabled, triggerServerURL } = extractUrlVariables();
+
+    // Initialize trigger service
+    triggerService.init({
+        enabled: triggersEnabled,
+        serverURL: triggerServerURL || 'http://127.0.0.1:5000/set_data'
+    });
+
+    // Send test trigger if enabled
+    if (triggersEnabled) {
+        triggerService.send('system.initialized');
+    }
 
     // Clear start element and scroll to top
     document.getElementById("start").innerHTML = "";

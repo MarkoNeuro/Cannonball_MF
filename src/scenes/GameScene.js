@@ -12,6 +12,7 @@ import {
 import Asteroids from "../classes/asteroids.js";
 import { saveData } from "../data_RL.js";
 import { gameConfigSettings } from "../config.js";
+import triggerService from "../triggerService.js";
 
 class GameScene extends Phaser.Scene {
     constructor(key) {
@@ -252,6 +253,9 @@ class GameScene extends Phaser.Scene {
      * @param {Ball} ball - The ball object.
      */
     handleBallAlienOverlap(ball) {
+        // Send EEG trigger for alien hit
+        triggerService.send('game.alienHit');
+        
         // Reset the position of the ball
         ball.resetPosition();
 
@@ -558,6 +562,9 @@ class GameScene extends Phaser.Scene {
             "1000 points!"
         );
 
+        // Send EEG trigger for game start
+        triggerService.send('game.start');
+
         // Start the first trial
         this.startNewTrial();
     }
@@ -573,6 +580,9 @@ class GameScene extends Phaser.Scene {
     }
 
     handleBallExplosion(ball) {
+        // Send EEG trigger for ball explosion
+        triggerService.send('game.ballExplode');
+        
         // Reset the ball's position or handle it being off-screen
         ball.y = 620;
 
@@ -613,6 +623,9 @@ class GameScene extends Phaser.Scene {
 
         // Check if the selected side is not blocked and the cannon is active
         if (this.blockedSide !== side && this.cannonActive) {
+            // Send EEG trigger for response
+            triggerService.send('game.response');
+            
             // Record the response
             this.response = side + 1;
 
@@ -888,6 +901,9 @@ class GameScene extends Phaser.Scene {
 
         if (!end) {
             console.log("Starting new trial...", this.trialNumber);
+            
+            // Send EEG trigger for new trial
+            triggerService.send('game.newTrial');
 
             // Update trial counter
             this.topUI.updateTrial(this.totalTrials, this.trialNumber);
@@ -1002,6 +1018,10 @@ class GameScene extends Phaser.Scene {
     handleEndScene() {
         if (this.trialNumber === this.totalTrials) {
             console.log("Ending game...");
+            
+            // Send EEG trigger for game end
+            triggerService.send('game.end');
+            
             this.saveData();
             this.scene.start("EndScene");
             return true;

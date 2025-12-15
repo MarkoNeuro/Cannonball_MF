@@ -125,6 +125,12 @@ export function extractUrlVariables() {
     // Get speed effect from URL
     var speedEffect = urlParams.has('speedEffect');
 
+    // Get triggers enabled from URL (default: true if EEG recording)
+    var triggersEnabled = urlParams.has('triggers') ? getQueryVariable('triggers') === 'true' : false;
+
+    // Get trigger server URL from URL (default: localhost:5000)
+    var triggerServerURL = urlParams.has('triggerURL') ? getQueryVariable('triggerURL') : null;
+
     // Check if the "SHORT" variable is present in the URL
     var short = urlParams.has('SHORT');
 
@@ -141,6 +147,8 @@ export function extractUrlVariables() {
         practice: practice,
         debugPhysics: debugPhysics,
         speedEffect: speedEffect,
+        triggersEnabled: triggersEnabled,
+        triggerServerURL: triggerServerURL,
         short: short,
         task: task
     };
