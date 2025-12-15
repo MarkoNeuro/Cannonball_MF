@@ -64,7 +64,7 @@ class TriggerService {
             triggerValue = trigger;
         }
 
-        console.log(`🎯 Sending trigger: ${trigger} (value: ${triggerValue})`);
+        console.log(`🎯 Sending trigger: ${trigger} (value: ${triggerValue}) to ${this.serverURL}`);
 
         try {
             const response = await fetch(this.serverURL, {
@@ -76,7 +76,9 @@ class TriggerService {
             });
 
             if (!response.ok) {
-                console.error(`❌ Trigger server error: ${response.status}`);
+                console.error(`❌ Trigger server error: ${response.status} - URL: ${this.serverURL}`);
+            } else {
+                console.log(`✅ Trigger sent successfully: ${trigger}`);
             }
         } catch (error) {
             console.error(`❌ Failed to send trigger: ${error.message}`);
