@@ -146,13 +146,13 @@
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700 mb-2">EEG Triggers:</label>
                 <div class="flex items-center mb-2">
-                    <input type="checkbox" id="triggersEnabled" name="triggersEnabled" 
+                    <input type="checkbox" id="triggersEnabled" name="triggersEnabled" checked
                         class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
                     <label for="triggersEnabled" class="ml-2 block text-sm text-gray-900">
                         Enable EEG Triggers
                     </label>
                 </div>
-                <div id="triggerConfig" style="display: none;" class="mt-2 space-y-2">
+                <div id="triggerConfig" style="display: block;" class="mt-2 space-y-2">
                     <div>
                         <label for="triggerURL" class="block text-xs font-medium text-gray-700">Trigger Server URL:</label>
                         <input type="text" id="triggerURL" name="triggerURL" value="http://127.0.0.1:5000/set_data" 
@@ -199,6 +199,11 @@
         document.getElementById('triggersEnabled').addEventListener('change', function() {
             const triggerConfig = document.getElementById('triggerConfig');
             triggerConfig.style.display = this.checked ? 'block' : 'none';
+        });
+        // Ensure triggers are enabled by default on load
+        window.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('triggersEnabled').checked = true;
+            document.getElementById('triggerConfig').style.display = 'block';
         });
 
         // Handle form submission
