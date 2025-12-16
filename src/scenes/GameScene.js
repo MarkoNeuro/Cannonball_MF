@@ -12,7 +12,7 @@ import {
 import Asteroids from "../classes/asteroids.js";
 import { saveData } from "../data_RL.js";
 import { gameConfigSettings } from "../config.js";
-import triggerService from "../triggerService.js";
+// import triggerService from "../triggerService.js";
 
 class GameScene extends Phaser.Scene {
     constructor(key) {
@@ -254,17 +254,18 @@ class GameScene extends Phaser.Scene {
      */
     handleBallAlienOverlap(ball) {
         // Send EEG trigger for alien hit
-        triggerService.send('game.alienHit');
-        
+        if (this.game && this.game.registry) {
+            const triggerManager = this.game.registry.get("triggerManager");
+            if (triggerManager) {
+                triggerManager.sendTriggerByEvent("game.alienHit");
+            }
+        }
         // Reset the position of the ball
         ball.resetPosition();
-
         // Move the ball to the bottom (TODO: Evaluate if necessary)
         ball.moveToBottom();
-
         // Update the score
         this.updateScore();
-
         // Reset the alien
         this.alien.reset();
     }
@@ -277,15 +278,19 @@ class GameScene extends Phaser.Scene {
     handleBallAsteroidOverlap(asteroid, ball) {
         // Check if the confidence target hit flag is false
         if (!this.confidenceTargetHit) {
+            // Send EEG trigger for asteroid hit
+            if (this.game && this.game.registry) {
+                const triggerManager = this.game.registry.get("triggerManager");
+                if (triggerManager) {
+                    triggerManager.sendTriggerByEvent("game.asteroidHit");
+                }
+            }
             // Set the confidence target hit flag to true
             this.confidenceTargetHit = true;
-
             // Hide the cannon pointer
             this.cannon.hidePointer();
-
             // Get the bet info
             this.getBetInfo(asteroid, ball);
-
             // Calculate the score increase if there's a valid bet
             if (this.pinkBet !== -999 || this.purpleBet !== -999) {
                 // Determine the bet type
@@ -563,7 +568,12 @@ class GameScene extends Phaser.Scene {
         );
 
         // Send EEG trigger for game start
-        triggerService.send('game.start');
+        if (this.game && this.game.registry) {
+            const triggerManager = this.game.registry.get("triggerManager");
+            if (triggerManager) {
+                triggerManager.sendTriggerByEvent("game.start");
+            }
+        }
 
         // Start the first trial
         this.startNewTrial();
@@ -581,7 +591,12 @@ class GameScene extends Phaser.Scene {
 
     handleBallExplosion(ball) {
         // Send EEG trigger for ball explosion
-        triggerService.send('game.ballExplode');
+        if (this.game && this.game.registry) {
+            const triggerManager = this.game.registry.get("triggerManager");
+            if (triggerManager) {
+                triggerManager.sendTriggerByEvent("game.ballExplode");
+            }
+        }
         
         // Reset the ball's position or handle it being off-screen
         ball.y = 620;
@@ -624,7 +639,12 @@ class GameScene extends Phaser.Scene {
         // Check if the selected side is not blocked and the cannon is active
         if (this.blockedSide !== side && this.cannonActive) {
             // Send EEG trigger for response
-            triggerService.send('game.response');
+            if (this.game && this.game.registry) {
+                const triggerManager = this.game.registry.get("triggerManager");
+                if (triggerManager) {
+                    triggerManager.sendTriggerByEvent("game.response");
+                }
+            }
             
             // Record the response
             this.response = side + 1;
@@ -903,7 +923,12 @@ class GameScene extends Phaser.Scene {
             console.log("Starting new trial...", this.trialNumber);
             
             // Send EEG trigger for new trial
-            triggerService.send('game.newTrial');
+            if (this.game && this.game.registry) {
+                const triggerManager = this.game.registry.get("triggerManager");
+                if (triggerManager) {
+                    triggerManager.sendTriggerByEvent("game.newTrial");
+                }
+            }
 
             // Update trial counter
             this.topUI.updateTrial(this.totalTrials, this.trialNumber);
@@ -1020,7 +1045,12 @@ class GameScene extends Phaser.Scene {
             console.log("Ending game...");
             
             // Send EEG trigger for game end
-            triggerService.send('game.end');
+            if (this.game && this.game.registry) {
+                const triggerManager = this.game.registry.get("triggerManager");
+                if (triggerManager) {
+                    triggerManager.sendTriggerByEvent("game.end");
+                }
+            }
             
             this.saveData();
             this.scene.start("EndScene");

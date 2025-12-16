@@ -10,7 +10,7 @@ console.log('✅ index.js loaded, triggerService imported:', typeof triggerServi
  * Function to check the start of the game.
  *
  * @param {string} uid - The user ID (only used for Firebase).
- * @param {string} saveMethod - The save method chosen.
+// import triggerService from './triggerService.js';
  */
 var startGame = function (uid = null, saveMethod = "firebase") {
     // Get URL variables
@@ -25,16 +25,15 @@ var startGame = function (uid = null, saveMethod = "firebase") {
         serverURL: triggerServerURL || 'http://127.0.0.1:5000/set_data'
     });
 
-    // Send test trigger if enabled
-    if (triggersEnabled) {
-        triggerService.send('system.initialized');
-    }
-
-    // Clear start element and scroll to top
-    document.getElementById("start").innerHTML = "";
-    window.scrollTo(0, 0);
-
-    // Wait a bit before starting
+    // Initialize trigger service (removed)
+    // triggerService.init({
+    //     enabled: triggersEnabled,
+    //     serverURL: triggerServerURL || 'http://127.0.0.1:5000/set_data'
+    // });
+    // Send test trigger if enabled (removed)
+    // if (triggersEnabled) {
+    //     triggerService.send('system.initialized');
+    // }
     setTimeout(function () {
 
         // Create the game with the configuration object defined above

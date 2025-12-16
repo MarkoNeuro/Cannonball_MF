@@ -89,6 +89,13 @@ class IntroScene extends Phaser.Scene {
             yoyo: false,
             repeat: 0,
             onComplete: function () {
+                // Send EEG trigger for game start
+                if (this.game && this.game.registry) {
+                    const triggerManager = this.game.registry.get("triggerManager");
+                    if (triggerManager) {
+                        triggerManager.sendTriggerByEvent("game.start");
+                    }
+                }
                 // Starts the next scene after the animation is complete
                 if (this.game.config.testing) {
                     this.scene.start('GameScene');

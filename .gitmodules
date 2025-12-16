@@ -1,0 +1,3 @@
+[submodule "external/eeg-trigger-js"]
+	path = external/eeg-trigger-js
+	url = https://github.com/the-wise-lab/eeg-trigger-js.git

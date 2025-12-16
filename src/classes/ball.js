@@ -144,6 +144,13 @@ class Ball extends Phaser.Physics.Arcade.Sprite {
         this.scene.time.delayedCall(
             200,
             () => {
+                // Send EEG trigger for ball explode
+                if (this.scene && this.scene.game && this.scene.game.registry) {
+                    const triggerManager = this.scene.game.registry.get("triggerManager");
+                    if (triggerManager) {
+                        triggerManager.sendTriggerByEvent("game.ballExplode");
+                    }
+                }
                 if (this.scene) {
                     this.scene.outcomeTime = this.scene.game.loop.time;
                     console.log(`[OUTCOME] Outcome interval (ms):`, Math.round(this.scene.outcomeTime - this.scene.choiceTime));
@@ -217,6 +224,13 @@ class Ball extends Phaser.Physics.Arcade.Sprite {
             repeat: 0,
             yoyo: false,
             onComplete: () => {
+                // Send EEG trigger for ball fired
+                if (this.scene && this.scene.game && this.scene.game.registry) {
+                    const triggerManager = this.scene.game.registry.get("triggerManager");
+                    if (triggerManager) {
+                        triggerManager.sendTriggerByEvent("game.ballFired");
+                    }
+                }
                 // Set x and y to be the same as the cannon
                 this.x = this.scene.cannon.x;
                 this.y = this.scene.cannon.y;
@@ -237,6 +251,13 @@ class Ball extends Phaser.Physics.Arcade.Sprite {
                     this.explode();
                 } else {
                     this.scene.exploded = false;
+                    // Send EEG trigger for asteroid tail
+                    if (this.scene && this.scene.game && this.scene.game.registry) {
+                        const triggerManager = this.scene.game.registry.get("triggerManager");
+                        if (triggerManager) {
+                            triggerManager.sendTriggerByEvent("game.asteroidTail");
+                        }
+                    }
                     console.log("Starting tail emitter!");
                     // Delay the trail start to match the explosion delay
                     this.scene.time.delayedCall(200, () => {
@@ -285,6 +306,13 @@ class Ball extends Phaser.Physics.Arcade.Sprite {
             this.body.velocity.length() > 0 &&
             this.alpha !== 0
         ) {
+            // Send EEG trigger for ball missed
+            if (this.scene && this.scene.game && this.scene.game.registry) {
+                const triggerManager = this.scene.game.registry.get("triggerManager");
+                if (triggerManager) {
+                    triggerManager.sendTriggerByEvent("game.ballMissed");
+                }
+            }
             this.setVelocity(0);
             this.setVisible(false);
 

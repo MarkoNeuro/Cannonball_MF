@@ -10,5 +10,6 @@
     "game.ballMissed": 15,
     "game.asteroidHit": 16,
     "game.ballExplode": 17,
-    "game.newTrial": 18
+    "game.newTrial": 18,
+    "game.asteroidTail": 19
 }
