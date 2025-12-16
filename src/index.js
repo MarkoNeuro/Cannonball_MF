@@ -2,7 +2,7 @@
 import { extractUrlVariables, applyGameConfig } from "./utils.js";
 import gameConfig from './gameConfig.js';
 import { gameConfigSettings } from './config.js';
-import triggerService from './triggerService.js';
+// import triggerService from './triggerService.js';
 
 console.log('✅ index.js loaded, triggerService imported:', typeof triggerService);
 
@@ -10,7 +10,7 @@ console.log('✅ index.js loaded, triggerService imported:', typeof triggerServi
  * Function to check the start of the game.
  *
  * @param {string} uid - The user ID (only used for Firebase).
-// import triggerService from './triggerService.js';
+import triggerService from './triggerService.js';
  */
 var startGame = function (uid = null, saveMethod = "firebase") {
     // Get URL variables
