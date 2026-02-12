@@ -2,15 +2,12 @@
 import { extractUrlVariables, applyGameConfig } from "./utils.js";
 import gameConfig from './gameConfig.js';
 import { gameConfigSettings } from './config.js';
-// import triggerService from './triggerService.js';
-
-console.log('✅ index.js loaded, triggerService imported:', typeof triggerService);
+import triggerManager from '../external/eeg-trigger-js/triggerManager.js';
 
 /**
  * Function to check the start of the game.
  *
  * @param {string} uid - The user ID (only used for Firebase).
-import triggerService from './triggerService.js';
  */
 var startGame = function (uid = null, saveMethod = "firebase") {
     // Get URL variables
@@ -19,25 +16,23 @@ var startGame = function (uid = null, saveMethod = "firebase") {
     // Debug: Log trigger settings
     console.log('🔍 Trigger settings from URL:', { triggersEnabled, triggerServerURL });
 
-    // Initialize trigger service
-    triggerService.init({
-        enabled: triggersEnabled,
-        serverURL: triggerServerURL || 'http://127.0.0.1:5000/set_data'
-    });
-
-    // Initialize trigger service (removed)
-    // triggerService.init({
-    //     enabled: triggersEnabled,
-    //     serverURL: triggerServerURL || 'http://127.0.0.1:5000/set_data'
-    // });
-    // Send test trigger if enabled (removed)
-    // if (triggersEnabled) {
-    //     triggerService.send('system.initialized');
-    // }
+    if (triggersEnabled) {
+        triggerManager.initialize('127.0.0.1', 5001, './triggerMappings.json')
+            .then(() => {
+                console.log('Trigger manager initialized and mappings loaded');
+                return triggerManager.sendTriggerByEvent('game.start', 'Game initialization');
+            })
+            .catch(error => {
+                console.error('Failed to initialize trigger manager:', error);
+            });
+    }
     setTimeout(function () {
 
         // Create the game with the configuration object defined above
         let game = new Phaser.Game(gameConfig);
+
+        // Store trigger manager in game registry for use throughout the game
+        game.registry.set("triggerManager", triggersEnabled ? triggerManager : null);
 
         // Subject and study IDs stored in registry
         game.registry.set("subjectID", subjectID);

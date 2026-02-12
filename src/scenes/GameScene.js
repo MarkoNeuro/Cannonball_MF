@@ -12,7 +12,6 @@ import {
 import Asteroids from "../classes/asteroids.js";
 import { saveData } from "../data_RL.js";
 import { gameConfigSettings } from "../config.js";
-import triggerService from "../triggerService.js";
 
 class GameScene extends Phaser.Scene {
     constructor(key) {
