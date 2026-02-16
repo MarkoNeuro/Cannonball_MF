@@ -131,6 +131,22 @@ class GameScene extends Phaser.Scene {
         this.trialInfoFile = this.registry.get("trialInfoFile");
     }
 
+    shouldSendEegTriggers() {
+        return this.sys?.settings?.key !== "TrainingScene";
+    }
+
+    sendEegTrigger(eventName) {
+        if (!this.shouldSendEegTriggers()) {
+            return;
+        }
+        if (this.game && this.game.registry) {
+            const triggerManager = this.game.registry.get("triggerManager");
+            if (triggerManager) {
+                triggerManager.sendTriggerByEvent(eventName);
+            }
+        }
+    }
+
     /**
      * Preloads all the necessary assets for the game.
      */
@@ -253,12 +269,7 @@ class GameScene extends Phaser.Scene {
      */
     handleBallAlienOverlap(ball) {
         // Send EEG trigger for alien hit
-        if (this.game && this.game.registry) {
-            const triggerManager = this.game.registry.get("triggerManager");
-            if (triggerManager) {
-                triggerManager.sendTriggerByEvent("game.alienHit");
-            }
-        }
+        this.sendEegTrigger("game.alienHit");
         // Reset the position of the ball
         ball.resetPosition();
         // Move the ball to the bottom (TODO: Evaluate if necessary)
@@ -278,12 +289,7 @@ class GameScene extends Phaser.Scene {
         // Check if the confidence target hit flag is false
         if (!this.confidenceTargetHit) {
             // Send EEG trigger for asteroid hit
-            if (this.game && this.game.registry) {
-                const triggerManager = this.game.registry.get("triggerManager");
-                if (triggerManager) {
-                    triggerManager.sendTriggerByEvent("game.asteroidHit");
-                }
-            }
+            this.sendEegTrigger("game.asteroidHit");
             // Set the confidence target hit flag to true
             this.confidenceTargetHit = true;
             // Hide the cannon pointer
@@ -567,12 +573,7 @@ class GameScene extends Phaser.Scene {
         );
 
         // Send EEG trigger for game start
-        if (this.game && this.game.registry) {
-            const triggerManager = this.game.registry.get("triggerManager");
-            if (triggerManager) {
-                triggerManager.sendTriggerByEvent("game.start");
-            }
-        }
+        this.sendEegTrigger("game.start");
 
         // Start the first trial
         this.startNewTrial();
@@ -590,12 +591,7 @@ class GameScene extends Phaser.Scene {
 
     handleBallExplosion(ball) {
         // Send EEG trigger for ball explosion
-        if (this.game && this.game.registry) {
-            const triggerManager = this.game.registry.get("triggerManager");
-            if (triggerManager) {
-                triggerManager.sendTriggerByEvent("game.ballExplode");
-            }
-        }
+        this.sendEegTrigger("game.ballExplode");
         
         // Reset the ball's position or handle it being off-screen
         ball.y = 620;
@@ -638,12 +634,7 @@ class GameScene extends Phaser.Scene {
         // Check if the selected side is not blocked and the cannon is active
         if (this.blockedSide !== side && this.cannonActive) {
             // Send EEG trigger for response
-            if (this.game && this.game.registry) {
-                const triggerManager = this.game.registry.get("triggerManager");
-                if (triggerManager) {
-                    triggerManager.sendTriggerByEvent("game.response");
-                }
-            }
+            this.sendEegTrigger("game.response");
             
             // Record the response
             this.response = side + 1;
@@ -922,12 +913,7 @@ class GameScene extends Phaser.Scene {
             console.log("Starting new trial...", this.trialNumber);
             
             // Send EEG trigger for new trial
-            if (this.game && this.game.registry) {
-                const triggerManager = this.game.registry.get("triggerManager");
-                if (triggerManager) {
-                    triggerManager.sendTriggerByEvent("game.newTrial");
-                }
-            }
+            this.sendEegTrigger("game.newTrial");
 
             // Update trial counter
             this.topUI.updateTrial(this.totalTrials, this.trialNumber);
@@ -1044,12 +1030,7 @@ class GameScene extends Phaser.Scene {
             console.log("Ending game...");
             
             // Send EEG trigger for game end
-            if (this.game && this.game.registry) {
-                const triggerManager = this.game.registry.get("triggerManager");
-                if (triggerManager) {
-                    triggerManager.sendTriggerByEvent("game.end");
-                }
-            }
+            this.sendEegTrigger("game.end");
             
             this.saveData();
             this.scene.start("EndScene");

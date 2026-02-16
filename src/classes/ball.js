@@ -148,6 +148,24 @@ class Ball extends Phaser.Physics.Arcade.Sprite {
         this.setData("colour", this.originalColour);
     }
 
+    shouldSendEegTriggers() {
+        return this.scene?.sys?.settings?.key !== "TrainingScene";
+    }
+
+    sendEegTrigger(eventName) {
+        if (!this.shouldSendEegTriggers()) {
+            return false;
+        }
+        if (this.scene && this.scene.game && this.scene.game.registry) {
+            const triggerManager = this.scene.game.registry.get("triggerManager");
+            if (triggerManager) {
+                triggerManager.sendTriggerByEvent(eventName);
+                return true;
+            }
+        }
+        return false;
+    }
+
     sendOutcomeTriggerOnce(eventName, shotId) {
         if (shotId !== this.currentShotId) {
             return;
@@ -155,12 +173,8 @@ class Ball extends Phaser.Physics.Arcade.Sprite {
         if (this.lastOutcomeTriggerShotId === shotId) {
             return;
         }
-        if (this.scene && this.scene.game && this.scene.game.registry) {
-            const triggerManager = this.scene.game.registry.get("triggerManager");
-            if (triggerManager) {
-                triggerManager.sendTriggerByEvent(eventName);
-                this.lastOutcomeTriggerShotId = shotId;
-            }
+        if (this.sendEegTrigger(eventName)) {
+            this.lastOutcomeTriggerShotId = shotId;
         }
     }
 
@@ -254,12 +268,8 @@ class Ball extends Phaser.Physics.Arcade.Sprite {
                     return;
                 }
                 // Send EEG trigger for ball fired
-                if (this.lastFiredTriggerShotId !== shotId && this.scene && this.scene.game && this.scene.game.registry) {
-                    const triggerManager = this.scene.game.registry.get("triggerManager");
-                    if (triggerManager) {
-                        triggerManager.sendTriggerByEvent("game.ballFired");
-                        this.lastFiredTriggerShotId = shotId;
-                    }
+                if (this.lastFiredTriggerShotId !== shotId && this.sendEegTrigger("game.ballFired")) {
+                    this.lastFiredTriggerShotId = shotId;
                 }
                 // Set x and y to be the same as the cannon
                 this.x = this.scene.cannon.x;
@@ -336,12 +346,7 @@ class Ball extends Phaser.Physics.Arcade.Sprite {
             this.alpha !== 0
         ) {
             // Send EEG trigger for ball missed
-            if (this.scene && this.scene.game && this.scene.game.registry) {
-                const triggerManager = this.scene.game.registry.get("triggerManager");
-                if (triggerManager) {
-                    triggerManager.sendTriggerByEvent("game.ballMissed");
-                }
-            }
+            this.sendEegTrigger("game.ballMissed");
             this.setVelocity(0);
             this.setVisible(false);
 
