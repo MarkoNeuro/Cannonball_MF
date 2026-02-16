@@ -646,6 +646,9 @@ class GameScene extends Phaser.Scene {
                 }
             }
             
+            // Record the choice timestamp at the exact moment of the EEG trigger
+            this.choiceTime = this.game.loop.time;
+
             // Record the response
             this.response = side + 1;
 
@@ -654,9 +657,6 @@ class GameScene extends Phaser.Scene {
 
             // Calculate the response time in milliseconds
             this.RT = this.game.loop.time - this.startTime;
-
-            // Record button press time
-            this.choiceTime = this.game.loop.time; 
 
             // Set the cannon as inactive to prevent firing again
             this.cannonActive = false;
