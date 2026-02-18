@@ -60,7 +60,11 @@ class Ball extends Phaser.Physics.Arcade.Sprite {
         // 🔥 Use the shared emitter
         this.tailEmitter = tailEmitter;
         this.tailEmitter.setDepth(3);
-        this.trailOffset = { x: 0, y: 0 };   
+        this.trailOffset = { x: 0, y: 0 };
+        this.currentShotId = 0;
+        this.lastFiredTriggerShotId = -1;
+        this.lastOutcomeTriggerShotId = -1;
+        this.pendingOutcomeTimer = null;
         
         
     }
@@ -77,6 +81,10 @@ class Ball extends Phaser.Physics.Arcade.Sprite {
     
 
     resetPosition() {
+        if (this.pendingOutcomeTimer) {
+            this.pendingOutcomeTimer.remove(false);
+            this.pendingOutcomeTimer = null;
+        }
         this.stopTrail();
         this.x = 20;
         this.y = 20;
@@ -140,17 +148,46 @@ class Ball extends Phaser.Physics.Arcade.Sprite {
         this.setData("colour", this.originalColour);
     }
 
-    explode() {
-        this.scene.time.delayedCall(
+    shouldSendEegTriggers() {
+        return this.scene?.sys?.settings?.key !== "TrainingScene";
+    }
+
+    sendEegTrigger(eventName) {
+        if (!this.shouldSendEegTriggers()) {
+            return false;
+        }
+        if (this.scene && this.scene.game && this.scene.game.registry) {
+            const triggerManager = this.scene.game.registry.get("triggerManager");
+            if (triggerManager) {
+                triggerManager.sendTriggerByEvent(eventName);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    sendOutcomeTriggerOnce(eventName, shotId) {
+        if (shotId !== this.currentShotId) {
+            return;
+        }
+        if (this.lastOutcomeTriggerShotId === shotId) {
+            return;
+        }
+        if (this.sendEegTrigger(eventName)) {
+            this.lastOutcomeTriggerShotId = shotId;
+        }
+    }
+
+    explode(shotId = this.currentShotId) {
+        if (this.pendingOutcomeTimer) {
+            this.pendingOutcomeTimer.remove(false);
+            this.pendingOutcomeTimer = null;
+        }
+        this.pendingOutcomeTimer = this.scene.time.delayedCall(
             200,
             () => {
-                // Send EEG trigger for ball explode
-                if (this.scene && this.scene.game && this.scene.game.registry) {
-                    const triggerManager = this.scene.game.registry.get("triggerManager");
-                    if (triggerManager) {
-                        triggerManager.sendTriggerByEvent("game.ballExplode");
-                    }
-                }
+                this.pendingOutcomeTimer = null;
+                this.sendOutcomeTriggerOnce("game.ballExplode", shotId);
                 if (this.scene) {
                     this.scene.outcomeTime = this.scene.game.loop.time;
                     console.log(`[OUTCOME] Outcome interval (ms):`, Math.round(this.scene.outcomeTime - this.scene.choiceTime));
@@ -195,6 +232,9 @@ class Ball extends Phaser.Physics.Arcade.Sprite {
     }
 
     fire(side, explode) {
+        this.currentShotId += 1;
+        const shotId = this.currentShotId;
+
         // Move ball into correct position
         if (side == "left") {
             this.x = 150;
@@ -224,12 +264,12 @@ class Ball extends Phaser.Physics.Arcade.Sprite {
             repeat: 0,
             yoyo: false,
             onComplete: () => {
+                if (shotId !== this.currentShotId) {
+                    return;
+                }
                 // Send EEG trigger for ball fired
-                if (this.scene && this.scene.game && this.scene.game.registry) {
-                    const triggerManager = this.scene.game.registry.get("triggerManager");
-                    if (triggerManager) {
-                        triggerManager.sendTriggerByEvent("game.ballFired");
-                    }
+                if (this.lastFiredTriggerShotId !== shotId && this.sendEegTrigger("game.ballFired")) {
+                    this.lastFiredTriggerShotId = shotId;
                 }
                 // Set x and y to be the same as the cannon
                 this.x = this.scene.cannon.x;
@@ -248,19 +288,18 @@ class Ball extends Phaser.Physics.Arcade.Sprite {
 
                 // Explode if the explode parameter is true
                 if (explode) {
-                    this.explode();
+                    this.explode(shotId);
                 } else {
                     this.scene.exploded = false;
-                    // Send EEG trigger for asteroid tail
-                    if (this.scene && this.scene.game && this.scene.game.registry) {
-                        const triggerManager = this.scene.game.registry.get("triggerManager");
-                        if (triggerManager) {
-                            triggerManager.sendTriggerByEvent("game.asteroidTail");
-                        }
+                    if (this.pendingOutcomeTimer) {
+                        this.pendingOutcomeTimer.remove(false);
+                        this.pendingOutcomeTimer = null;
                     }
                     console.log("Starting tail emitter!");
                     // Delay the trail start to match the explosion delay
-                    this.scene.time.delayedCall(200, () => {
+                    this.pendingOutcomeTimer = this.scene.time.delayedCall(200, () => {
+                        this.pendingOutcomeTimer = null;
+                        this.sendOutcomeTriggerOnce("game.asteroidTail", shotId);
                         this.startTrail();
                     });
                 }
@@ -307,12 +346,7 @@ class Ball extends Phaser.Physics.Arcade.Sprite {
             this.alpha !== 0
         ) {
             // Send EEG trigger for ball missed
-            if (this.scene && this.scene.game && this.scene.game.registry) {
-                const triggerManager = this.scene.game.registry.get("triggerManager");
-                if (triggerManager) {
-                    triggerManager.sendTriggerByEvent("game.ballMissed");
-                }
-            }
+            this.sendEegTrigger("game.ballMissed");
             this.setVelocity(0);
             this.setVisible(false);
 
